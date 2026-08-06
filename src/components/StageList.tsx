@@ -1,0 +1,78 @@
+import { Link } from "react-router-dom";
+import type { Stage } from "@/types";
+import { modulesForStage } from "@/data/curriculum";
+import { Card, EmptyState, PrereqChip } from "./ui";
+import { useProgressStore } from "@/store/progressStore";
+
+/**
+ * Renders a stage and its modules straight from the curriculum registry.
+ * With the registry empty (pre-content phases) this shows a friendly empty
+ * state per stage; once modules are authored they appear automatically.
+ */
+export function StageList({ stages }: { stages: Stage[] }) {
+  return (
+    <div className="space-y-8">
+      {stages.map((stage) => (
+        <StageBlock key={stage.id} stage={stage} />
+      ))}
+    </div>
+  );
+}
+
+function StageBlock({ stage }: { stage: Stage }) {
+  const mods = modulesForStage(stage.id);
+  const lessonCompletions = useProgressStore((s) => s.progress.lessonCompletions);
+
+  return (
+    <section>
+      <div className="mb-3 flex items-baseline justify-between">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">
+            <span className="mr-2 text-slate-400">Stage {stage.order}</span>
+            {stage.title}
+          </h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{stage.subtitle}</p>
+        </div>
+        <span className="text-xs text-slate-400">{mods.length} modules</span>
+      </div>
+
+      {mods.length === 0 ? (
+        <EmptyState
+          title="Content lands in an upcoming phase."
+          hint="This stage is wired and ready — modules will appear here once authored."
+        />
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {mods.map((m) => {
+            const done = Boolean(lessonCompletions[m.id]);
+            const href =
+              m.kind === "challengeTrack" ? `/checkpoint/${m.id}` : `/lesson/${m.id}`;
+            return (
+              <Link key={m.id} to={href}>
+                <Card className="flex h-full flex-col gap-2 transition hover:border-forge-400 hover:shadow-md">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-medium uppercase tracking-wide text-forge-500">
+                      {m.kind}
+                    </span>
+                    {done && (
+                      <span className="text-[11px] font-medium text-emerald-500">done</span>
+                    )}
+                  </div>
+                  <h3 className="font-semibold leading-tight">{m.title}</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">{m.summary}</p>
+                  {m.prerequisiteModuleIds.length > 0 && (
+                    <div className="mt-1 flex flex-wrap gap-1.5">
+                      {m.prerequisiteModuleIds.map((id) => (
+                        <PrereqChip key={id} label={id} />
+                      ))}
+                    </div>
+                  )}
+                </Card>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}

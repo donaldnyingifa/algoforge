@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 antialiased;
+}
+
+.dark body {
+  @apply bg-slate-950 text-slate-100;
+}
+
+/* Thin, theme-aware scrollbars */
+* {
+  scrollbar-width: thin;
+}
+
+/* Lightweight markdown prose (no typography plugin needed) */
+.md-body {
+  @apply text-[15px] leading-relaxed text-slate-700 dark:text-slate-300;
+}
+.md-body > * + * {
+  @apply mt-3;
+}
+.md-body h1 {
+  @apply mt-6 text-xl font-bold text-slate-900 dark:text-slate-100;
+}
+.md-body h2 {
+  @apply mt-6 text-lg font-semibold text-slate-900 dark:text-slate-100;
+}
+.md-body h3 {
+  @apply mt-5 text-base font-semibold text-slate-900 dark:text-slate-100;
+}
+.md-body ul {
+  @apply list-disc space-y-1 pl-6;
+}
+.md-body ol {
+  @apply list-decimal space-y-1 pl-6;
+}
+.md-body a {
+  @apply text-forge-500 underline underline-offset-2;
+}
+.md-body blockquote {
+  @apply border-l-4 border-slate-300 pl-4 italic text-slate-500 dark:border-slate-700;
+}
+.md-body table {
+  @apply w-full border-collapse text-sm;
+}
+.md-body th,
+.md-body td {
+  @apply border border-slate-200 px-3 py-1.5 text-left dark:border-slate-700;
+}
+.md-body :not(pre) > code.inline-code {
+  @apply rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px] text-forge-600 dark:bg-slate-800 dark:text-forge-300;
+}
+.md-body pre.static-block {
+  @apply overflow-x-auto rounded-lg bg-slate-950 p-3 font-mono text-[13px] leading-relaxed text-slate-100;
+}
+.md-body strong {
+  @apply font-semibold text-slate-900 dark:text-slate-100;
+}
