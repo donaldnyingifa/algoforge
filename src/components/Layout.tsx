@@ -1,7 +1,17 @@
+import { Suspense } from "react";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { ThemeToggle } from "./ThemeToggle";
 import { BackupNudge } from "./BackupNudge";
+
+function RouteFallback() {
+  return (
+    <div className="flex items-center justify-center py-20 text-sm text-slate-400" role="status" aria-live="polite">
+      <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-forge-500" />
+      Loading…
+    </div>
+  );
+}
 
 export function Layout() {
   return (
@@ -22,7 +32,9 @@ export function Layout() {
         <main className="flex-1 overflow-y-auto px-6 py-6">
           <div className="mx-auto max-w-5xl">
             <BackupNudge />
-            <Outlet />
+            <Suspense fallback={<RouteFallback />}>
+              <Outlet />
+            </Suspense>
           </div>
         </main>
       </div>

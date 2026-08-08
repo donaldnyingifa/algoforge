@@ -1,6 +1,9 @@
 import Editor from "@monaco-editor/react";
 import type { Language } from "@/types";
 import { useThemeStore } from "@/store/themeStore";
+// Side-effect import: configure Monaco to bundle locally (offline, no CDN).
+// Colocated here so Monaco loads only with the editor, not in the initial bundle.
+import "@/lib/monacoSetup";
 
 const MONACO_LANG: Record<Language, string> = {
   js: "javascript",

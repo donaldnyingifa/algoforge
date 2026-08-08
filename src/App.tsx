@@ -1,21 +1,36 @@
+import { lazy } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Layout } from "@/components/Layout";
-import { Home } from "@/pages/Home";
-import { Learn } from "@/pages/Learn";
-import { Patterns } from "@/pages/Patterns";
-import { Challenges } from "@/pages/Challenges";
-import { ChallengeTrack } from "@/pages/ChallengeTrack";
-import { MockInterview } from "@/pages/MockInterview";
-import { Review } from "@/pages/Review";
-import { Playground } from "@/pages/Playground";
-import { Dashboard } from "@/pages/Dashboard";
-import { Badges } from "@/pages/Badges";
-import { Settings } from "@/pages/Settings";
-import { Lesson } from "@/pages/Lesson";
-import { Problem } from "@/pages/Problem";
-import { Checkpoint } from "@/pages/Checkpoint";
-import { Test } from "@/pages/Test";
-import { NotFound } from "@/pages/NotFound";
+
+/**
+ * Routes are code-split with React.lazy so heavy pages (especially the
+ * Monaco-backed Playground / Problem / Test / Mock) load on demand rather than
+ * bloating the initial bundle. A Suspense boundary in <Layout> renders the
+ * fallback while a route chunk loads.
+ */
+const named = <M extends Record<string, unknown>>(imp: Promise<M>, key: keyof M) =>
+  imp.then((m) => ({ default: m[key] as React.ComponentType }));
+
+const Home = lazy(() => named(import("@/pages/Home"), "Home"));
+const Learn = lazy(() => named(import("@/pages/Learn"), "Learn"));
+const Patterns = lazy(() => named(import("@/pages/Patterns"), "Patterns"));
+const Challenges = lazy(() => named(import("@/pages/Challenges"), "Challenges"));
+const ChallengeTrack = lazy(() => named(import("@/pages/ChallengeTrack"), "ChallengeTrack"));
+const MockInterview = lazy(() => named(import("@/pages/MockInterview"), "MockInterview"));
+const Review = lazy(() => named(import("@/pages/Review"), "Review"));
+const CaseStudies = lazy(() => named(import("@/pages/CaseStudies"), "CaseStudies"));
+const CaseStudy = lazy(() => named(import("@/pages/CaseStudy"), "CaseStudy"));
+const SdCertification = lazy(() => named(import("@/pages/SdCertification"), "SdCertification"));
+const SdMockInterview = lazy(() => named(import("@/pages/SdMockInterview"), "SdMockInterview"));
+const Playground = lazy(() => named(import("@/pages/Playground"), "Playground"));
+const Dashboard = lazy(() => named(import("@/pages/Dashboard"), "Dashboard"));
+const Badges = lazy(() => named(import("@/pages/Badges"), "Badges"));
+const Settings = lazy(() => named(import("@/pages/Settings"), "Settings"));
+const Lesson = lazy(() => named(import("@/pages/Lesson"), "Lesson"));
+const Problem = lazy(() => named(import("@/pages/Problem"), "Problem"));
+const Checkpoint = lazy(() => named(import("@/pages/Checkpoint"), "Checkpoint"));
+const Test = lazy(() => named(import("@/pages/Test"), "Test"));
+const NotFound = lazy(() => named(import("@/pages/NotFound"), "NotFound"));
 
 const router = createBrowserRouter([
   {
@@ -33,6 +48,10 @@ const router = createBrowserRouter([
       { path: "challenges/:trackId", element: <ChallengeTrack /> },
       { path: "mock", element: <MockInterview /> },
       { path: "review", element: <Review /> },
+      { path: "cases", element: <CaseStudies /> },
+      { path: "case/:caseId", element: <CaseStudy /> },
+      { path: "sd-mock", element: <SdMockInterview /> },
+      { path: "sd-cert", element: <SdCertification /> },
       { path: "playground", element: <Playground /> },
       { path: "dashboard", element: <Dashboard /> },
       { path: "badges", element: <Badges /> },

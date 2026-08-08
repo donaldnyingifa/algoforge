@@ -1,6 +1,7 @@
 import type {
   CaseStudy,
   CurriculumTrack,
+  Difficulty,
   Module,
   Problem,
   QuizQuestion,
@@ -157,6 +158,18 @@ export function stagesForTrack(track: CurriculumTrack): Stage[] {
 
 export function getStage(stageId: string): Stage | undefined {
   return stages.find((s) => s.id === stageId);
+}
+
+/** All registered case studies, ordered easy → hard then by title. */
+export function allCaseStudies(): CaseStudy[] {
+  const rank: Record<Difficulty, number> = { easy: 0, medium: 1, hard: 2 };
+  return Object.values(caseStudies).sort(
+    (a, b) => rank[a.difficulty] - rank[b.difficulty] || (a.title < b.title ? -1 : a.title > b.title ? 1 : 0),
+  );
+}
+
+export function getCaseStudy(id: string): CaseStudy | undefined {
+  return caseStudies[id];
 }
 
 export function modulesForStage(stageId: string): Module[] {

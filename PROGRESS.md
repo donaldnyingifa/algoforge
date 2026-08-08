@@ -5,23 +5,12 @@
 
 ## Current position
 
-- **Current phase:** Phase 15 — SD Build Labs → ✅ COMPLETE (sd-s2 = 4 build labs:
-  rate limiter, LRU cache, consistent-hashing ring, Bloom filter). tsc + build
-  green; all references pass headless (js+ts), starters fail. Totals: 65 modules.
-- **Next up (send `continue`):** **Phase 16 — SD Case Studies** → populate `sd-s3`
-  (subtitle "Fourteen designs, ordered easy to hard"). This uses the **`CaseStudy`**
-  type (walkthroughSections [prose | decision-quiz], designTemplate [requirements/
-  estimation/api/dataModel/highLevelDesign/deepDives sections], rubric [0-4 criteria],
-  modelAnswer) + `registerCaseStudy()` (already in curriculum.ts). Learner work =
-  `DesignSubmission` (needs a store slice + a NEW Case Study page: template editor,
-  diagram scratchpad text, self-rubric, reveal model answer on submit). Case studies
-  aren't `Module`s — they live in `caseStudies` map; need a selector (e.g.
-  `caseStudiesForStage`/list) + routing `/case/:id` + surface under Learn or a new
-  section. CONTENT phase → sub-batch (2–3 designs per batch). Build the page infra
-  in batch 1 alongside the first designs, then STOP.
-- **VERIFY HELPER for SD labs:** headless-run worker buildLab exec —
-  `new Function("console","assert","expect", "use strict;\\n"+source+"\\n"+harness)`;
-  assert(name,cond)/expect(name,recv,exp deepEqual). Reference passes all, starter not.
+- **Current phase:** Phase 18 — Polish & Ship → ✅ COMPLETE. **All 18 phases done —
+  AlgoForge is SHIPPED.** Real (non-stubbed) production build passes; tsc clean.
+- **Status:** Project complete. If revisiting, the app is fully built: DSA track
+  (7 stages, ~394 problems, 66 modules, badges, tests), challenge tracks, expert
+  stage, mock interviews, spaced review, and the full System Design track
+  (foundations, build labs, 14 case studies, mock design interviews, certification).
 - **BUILD NOTE:** the sandbox `/tmp` gets wiped intermittently and background
   (`&`/nohup) builds do NOT survive across tool calls. Run `vite build` SYNCHRONOUSLY
   in one call with `--minify false` and an extended timeout (~300s). Re-rsync +
@@ -410,6 +399,85 @@ Node 18+ required (built/verified on Node 22). No backend, no runtime APIs.
   Badges `badge-pat-dp-1d`, `badge-pat-dp-knapsack`. Pattern ids: `dp-1d`,
   `dp-knapsack`.
 - ✅ Verified 121/121 headless (memo and tabulation agree); strict tsc + build clean.
+
+## Phase 18 — Polish & Ship ✅ COMPLETE (PROJECT SHIPPED)
+
+- ✅ **Code-splitting:** all routes converted to `React.lazy` (App.tsx) with a
+  `<Suspense>` fallback (spinner, role=status) in Layout. Moved the Monaco
+  side-effect import out of `main.tsx` into `CodeEditor.tsx` so Monaco loads only
+  on editor pages.
+- ✅ **Real production build verified** (non-stubbed, Monaco included, ~1m20s):
+  Monaco (~4.4 MB) now a lazily-loaded chunk; recharts/Dashboard (817 KB) and
+  react-markdown (376 KB) separate chunks. Initial bundle ~2.07 MB / **410 KB
+  gzip** (was ~3.5 MB / 690 KB) with editor + charts deferred. tsc clean.
+- ✅ README.md authored (overview, stack, run/build, layout). index.html already
+  had title/meta/favicon + theme-flash guard; NotFound covers `*`; empty/loading
+  states present throughout.
+- ✅ Final totals: 7 DSA stages + 4 SD stages, ~394 problems, 66 modules, tiered
+  badges, 4 challenge tracks, spaced review, mock interviews, 14 SD case studies,
+  SD certification. All 18 phases delivered.
+
+## Phase 17 — SD Mock Interviews + Certification ✅ COMPLETE (sd-s4)
+
+- ✅ **Certification** (`data/systemdesign/certification.ts`): module
+  `m-sd-certification` (sd-s4, badge `badge-sd-certified`) + exam pool =
+  all 17 SD foundation MCQs. Page `SdCertification.tsx` (/sd-cert): timed
+  ${'10'}-question / 15-min MCQ exam → scores → `submitTest(session, badge)` reuses
+  best-kept-badge + XP-bonus logic (synthetic TestSession, 0 problems, moduleId =
+  cert module). Results show tier/Certified.
+- ✅ **Mock design interview** page `SdMockInterview.tsx` (/sd-mock): pick a case
+  study + duration (30/45/60), timed template editor + diagram (persists via
+  designStore), Finish → reveal model answer + links to full case study & cert.
+- ✅ Surfacing: Learn → System Design now shows 3 cards (Case Studies, Mock Design
+  Interview, Certification); Badges gallery special-cases the cert link → /sd-cert
+  ("Take exam"); Lesson page adds a "Start certification exam" CTA for the cert
+  module. Routes /sd-mock, /sd-cert added.
+- ✅ Verified: cert module + badge registered (sd-s4), 17-question pool all resolve
+  & valid, 66 modules total; tsc + build clean. **System Design track complete**
+  (Foundations → Build Labs → Case Studies → Interviews & Certification).
+
+## Phase 16 — SD Case Studies ✅ COMPLETE (14 designs)
+
+- ✅ Batch 4 (final): **Metrics & Monitoring** (med), **Distributed Cache** (hard,
+  reuses ring+LRU concepts), **Ride-Sharing/Uber** (hard, geospatial), **Ticket
+  Booking** (hard, reservation locking), **Payment System** (hard, idempotency/
+  ledger). 14 total (2 easy / 6 medium / 6 hard). All full CaseStudy shape,
+  unique quiz ids, 0 integrity issues; tsc + build clean. `/cases` lists them
+  easy→hard; page infra (template editor, self-rubric, model-answer reveal,
+  localForage submissions, completeLesson XP) unchanged from batch 1.
+
+## Phase 16 — SD Case Studies 🚧 (batches 1–3: 9 designs)
+
+- ✅ Batch 3: **Typeahead/Autocomplete** (med), **Notification Service** (med),
+  **Video Streaming** (hard), **Cloud File Storage / Drive** (hard). Full shape;
+  unique quiz ids; 0 integrity issues; tsc + build clean. 9 case studies total.
+
+## Phase 16 — SD Case Studies 🚧 (batches 1–2: 5 designs)
+
+- ✅ Batch 2: **Pastebin** (easy), **Web Crawler** (medium), **Chat System**
+  (medium) appended to `sdCaseStudies` — full walkthroughs (prose + decision MCQs,
+  unique quiz ids), 6-section templates, 5-criterion rubrics, model answers.
+- ✅ Verified: 5 case studies, 0 integrity issues (templates=6, rubric maxScore 4,
+  unique quiz ids, non-thin model answers); tsc + build clean.
+
+## Phase 16 — SD Case Studies 🚧 (batch 1: infra + 2 designs)
+
+- ✅ Data: `data/systemdesign/casestudies.ts` — **URL Shortener** (easy) + **News
+  Feed** (medium), each with walkthrough (prose + decision MCQ), 6-section
+  `designTemplate` (via `template()` helper), 5-criterion rubric (maxScore 4),
+  full `modelAnswer`, xp=XP.caseStudy. Registered via `registerCaseStudy` in
+  `registerSystemDesign()`.
+- ✅ Selectors `allCaseStudies()` (easy→hard) + `getCaseStudy(id)` in curriculum.
+- ✅ Persistence: `store/designStore.ts` (localForage `design_submissions`) —
+  loadSubmission/saveSubmission/emptySubmission for `DesignSubmission`.
+- ✅ Pages: `CaseStudies.tsx` (index, /cases) + `CaseStudy.tsx` (/case/:caseId —
+  walkthrough, autosaving template editor, diagram scratchpad, 0–4 self-rubric,
+  Submit → reveal model answer + `completeLesson(cs.id, xp)` for idempotent XP).
+  Routed in App.tsx; surfaced via a "Case Studies" card in Learn → System Design.
+- ✅ Verified: 2 case studies, 0 integrity issues (6-section templates, rubric
+  maxScore 4, decision-quiz answer indices/explanations); strict tsc + build clean.
+  Fixed a `noUncheckedIndexedAccess` error in `allCaseStudies` (typed rank Record
+  by Difficulty).
 
 ## Phase 15 — SD Build Labs ✅ COMPLETE (sd-s2, 4 labs)
 

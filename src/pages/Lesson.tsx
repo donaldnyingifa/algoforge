@@ -82,6 +82,14 @@ export function Lesson() {
             Take module test →
           </Link>
         )}
+        {module.id === "m-sd-certification" && (
+          <Link
+            to="/sd-cert"
+            className="rounded-lg bg-forge-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-forge-600"
+          >
+            Start certification exam →
+          </Link>
+        )}
       </div>
 
       {drills.length > 0 && (
