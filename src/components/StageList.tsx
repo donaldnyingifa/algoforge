@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import type { Stage } from "@/types";
 import { modulesForStage } from "@/data/curriculum";
@@ -9,17 +10,24 @@ import { useProgressStore } from "@/store/progressStore";
  * With the registry empty (pre-content phases) this shows a friendly empty
  * state per stage; once modules are authored they appear automatically.
  */
-export function StageList({ stages }: { stages: Stage[] }) {
+export function StageList({
+  stages,
+  extra,
+}: {
+  stages: Stage[];
+  /** Optional custom content rendered in place of a stage's module grid. */
+  extra?: (stageId: string) => ReactNode;
+}) {
   return (
     <div className="space-y-8">
       {stages.map((stage) => (
-        <StageBlock key={stage.id} stage={stage} />
+        <StageBlock key={stage.id} stage={stage} extra={extra?.(stage.id)} />
       ))}
     </div>
   );
 }
 
-function StageBlock({ stage }: { stage: Stage }) {
+function StageBlock({ stage, extra }: { stage: Stage; extra?: ReactNode }) {
   const mods = modulesForStage(stage.id);
   const lessonCompletions = useProgressStore((s) => s.progress.lessonCompletions);
 
@@ -36,7 +44,9 @@ function StageBlock({ stage }: { stage: Stage }) {
         <span className="text-xs text-slate-400">{mods.length} modules</span>
       </div>
 
-      {mods.length === 0 ? (
+      {extra ? (
+        extra
+      ) : mods.length === 0 ? (
         <EmptyState
           title="Content lands in an upcoming phase."
           hint="This stage is wired and ready — modules will appear here once authored."

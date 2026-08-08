@@ -400,6 +400,14 @@ Node 18+ required (built/verified on Node 22). No backend, no runtime APIs.
   `dp-knapsack`.
 - ✅ Verified 121/121 headless (memo and tabulation agree); strict tsc + build clean.
 
+## Post-ship fix — sd-s3 case studies surfaced on Learn
+
+- Case studies were registered (14) and reachable at `/cases`, but the **sd-s3
+  "SD — Case Studies" stage showed an empty state** on Learn because case studies
+  aren't `Module`s (0 moduleIds). Added an optional `extra(stageId)` render hook to
+  `StageList`; Learn now renders the 14 case-study cards + a Mock Design Interview
+  card inline under the sd-s3 stage. tsc + build clean.
+
 ## Phase 18 — Polish & Ship ✅ COMPLETE (PROJECT SHIPPED)
 
 - ✅ **Code-splitting:** all routes converted to `React.lazy` (App.tsx) with a
