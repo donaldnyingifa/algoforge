@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { editor as MonacoEditor } from "monaco-editor";
 import { Link, useParams } from "react-router-dom";
 import type { Language, Problem as ProblemType } from "@/types";
 import { PageHeader, Card, DifficultyBadge } from "@/components/ui";
@@ -10,6 +11,7 @@ import { getProblemBySlug } from "@/data/curriculum";
 import { useProgressStore } from "@/store/progressStore";
 import { loadDraft, saveDraft, clearDraft } from "@/store/draftStore";
 import { cn } from "@/lib/cn";
+import { buildFallbackWalkthrough } from "@/lib/walkthrough";
 
 export function Problem() {
   const { slug = "" } = useParams();
@@ -46,9 +48,13 @@ function ProblemWorkspace({ problem }: { problem: ProblemType }) {
 
   const loadedRef = useRef(false);
   const checkpointRef = useRef<number>(Date.now());
+  const editorRef = useRef<MonacoEditor.IStandaloneCodeEditor | null>(null);
 
   const solved = status === "solved";
   const solutionsUnlocked = solved || gaveUp;
+  const walkthrough = problem.walkthrough?.length
+    ? problem.walkthrough
+    : buildFallbackWalkthrough(problem);
 
   // Load the saved draft for this problem+language (falls back to starter).
   useEffect(() => {
@@ -139,6 +145,10 @@ function ProblemWorkspace({ problem }: { problem: ProblemType }) {
     void clearDraft(problem.id, language);
   };
 
+  const focusEditor = () => {
+    editorRef.current?.focus();
+  };
+
   return (
     <div>
       <Link to="/learn" className="text-sm font-medium text-forge-500 hover:underline">
@@ -203,6 +213,15 @@ function ProblemWorkspace({ problem }: { problem: ProblemType }) {
             onReveal={revealNextHint}
           />
 
+          {walkthrough.length > 0 && (
+            <WalkthroughCard
+              steps={walkthrough}
+              unlocked={revealedHints === problem.hints.length}
+              onTryIt={focusEditor}
+              resetKey={problem.id}
+            />
+          )}
+
           <SolutionsCard
             problem={problem}
             unlocked={solutionsUnlocked}
@@ -213,12 +232,17 @@ function ProblemWorkspace({ problem }: { problem: ProblemType }) {
         {/* Right: editor + results */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <div className="flex overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700">
+            <div
+              className="flex overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700"
+              role="group"
+              aria-label="Editor language"
+            >
               {(["js", "ts"] as Language[]).map((lang) => (
                 <button
                   key={lang}
                   type="button"
                   onClick={() => switchLanguage(lang)}
+                  aria-pressed={language === lang}
                   className={cn(
                     "px-3 py-1 text-xs font-semibold uppercase transition",
                     language === lang
@@ -240,7 +264,14 @@ function ProblemWorkspace({ problem }: { problem: ProblemType }) {
           </div>
 
           <div className="h-[340px] overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
-            <CodeEditor value={code} onChange={setCode} language={language} />
+            <CodeEditor
+              value={code}
+              onChange={setCode}
+              language={language}
+              onMount={(editor) => {
+                editorRef.current = editor;
+              }}
+            />
           </div>
 
           <div className="flex items-center gap-2">
@@ -318,6 +349,109 @@ function HintsDrawer({
   );
 }
 
+function WalkthroughCard({
+  steps,
+  unlocked,
+  onTryIt,
+  resetKey,
+}: {
+  steps: NonNullable<ProblemType["walkthrough"]>;
+  unlocked: boolean;
+  onTryIt: () => void;
+  resetKey: string;
+}) {
+  const [revealedSteps, setRevealedSteps] = useState(1);
+  const focusTryAfterRevealRef = useRef(false);
+  const tryButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  // Route changes reuse this component, so a new problem must begin at step one.
+  useEffect(() => {
+    setRevealedSteps(1);
+    focusTryAfterRevealRef.current = false;
+  }, [resetKey]);
+
+  useEffect(() => {
+    if (!focusTryAfterRevealRef.current || revealedSteps < steps.length) return;
+    focusTryAfterRevealRef.current = false;
+    tryButtonRef.current?.focus();
+  }, [revealedSteps, steps.length]);
+
+  const revealNextStep = () => {
+    const nextCount = Math.min(revealedSteps + 1, steps.length);
+    focusTryAfterRevealRef.current = nextCount === steps.length;
+    setRevealedSteps(nextCount);
+  };
+
+  return (
+    <Card>
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <div>
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+            How to solve it
+          </h3>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            A code-free implementation guide.
+          </p>
+        </div>
+        {unlocked && (
+          <span className="text-xs text-slate-400" aria-live="polite" aria-atomic="true">
+            {Math.min(revealedSteps, steps.length)}/{steps.length} steps
+          </span>
+        )}
+      </div>
+
+      {!unlocked ? (
+        <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900/40">
+          Reveal all hints to unlock the step-by-step guide. It explains the approach without
+          showing solution code.
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {steps.slice(0, revealedSteps).map((step, index) => (
+            <div
+              key={`${index}-${step.title}`}
+              className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800/60"
+            >
+              <div className="flex items-center gap-2">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-forge-100 text-[11px] font-bold text-forge-600 dark:bg-forge-950/60 dark:text-forge-300">
+                  {index + 1}
+                </span>
+                <h4 className="text-sm font-semibold">{step.title}</h4>
+              </div>
+              <div className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                <MarkdownView source={step.body} />
+              </div>
+            </div>
+          ))}
+          {revealedSteps < steps.length ? (
+            <button
+              type="button"
+              onClick={revealNextStep}
+              className="text-sm font-medium text-forge-500 hover:underline"
+            >
+              Reveal the next step →
+            </button>
+          ) : (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-forge-200 bg-forge-50 p-3 dark:border-forge-900/70 dark:bg-forge-950/30">
+              <p className="text-sm text-forge-800 dark:text-forge-200">
+                You have the plan — try implementing it before revealing a solution.
+              </p>
+              <button
+                ref={tryButtonRef}
+                type="button"
+                onClick={onTryIt}
+                className="shrink-0 text-sm font-semibold text-forge-600 hover:underline dark:text-forge-300"
+              >
+                Try it in the editor →
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </Card>
+  );
+}
+
 function SolutionsCard({
   problem,
   unlocked,
@@ -328,6 +462,7 @@ function SolutionsCard({
   onGiveUp: () => void;
 }) {
   const [lang, setLang] = useState<Language>("js");
+  const [codeStyle, setCodeStyle] = useState<"standard" | "commented">("standard");
 
   return (
     <Card>
@@ -347,22 +482,61 @@ function SolutionsCard({
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="flex overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700">
-            {(["js", "ts"] as Language[]).map((l) => (
+          <div className="flex flex-wrap items-center gap-2">
+            <div
+              className="flex overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700"
+              role="group"
+              aria-label="Solution language"
+            >
+              {(["js", "ts"] as Language[]).map((l) => (
+                <button
+                  key={l}
+                  type="button"
+                  onClick={() => setLang(l)}
+                  aria-pressed={lang === l}
+                  className={cn(
+                    "px-3 py-1 text-xs font-semibold uppercase transition",
+                    lang === l
+                      ? "bg-forge-500 text-white"
+                      : "bg-white text-slate-500 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800",
+                  )}
+                >
+                  {l}
+                </button>
+              ))}
+            </div>
+            <div
+              className="flex overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700"
+              role="group"
+              aria-label="Solution code detail"
+            >
               <button
-                key={l}
                 type="button"
-                onClick={() => setLang(l)}
+                onClick={() => setCodeStyle("standard")}
+                aria-pressed={codeStyle === "standard"}
                 className={cn(
-                  "px-3 py-1 text-xs font-semibold uppercase transition",
-                  lang === l
+                  "px-3 py-1 text-xs font-semibold transition",
+                  codeStyle === "standard"
                     ? "bg-forge-500 text-white"
                     : "bg-white text-slate-500 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800",
                 )}
               >
-                {l}
+                Code
               </button>
-            ))}
+              <button
+                type="button"
+                onClick={() => setCodeStyle("commented")}
+                aria-pressed={codeStyle === "commented"}
+                className={cn(
+                  "px-3 py-1 text-xs font-semibold transition",
+                  codeStyle === "commented"
+                    ? "bg-forge-500 text-white"
+                    : "bg-white text-slate-500 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800",
+                )}
+              >
+                Fully commented
+              </button>
+            </div>
           </div>
           {problem.solutions.map((sol, i) => (
             <div key={i}>
@@ -374,10 +548,26 @@ function SolutionsCard({
                 <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] text-slate-500 dark:bg-slate-800 dark:text-slate-400">
                   space {sol.spaceComplexity}
                 </span>
+                {codeStyle === "commented" && (
+                  <span
+                    className={cn(
+                      "rounded px-1.5 py-0.5 text-[11px] font-medium",
+                      sol.commentedCode
+                        ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300"
+                        : "bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300",
+                    )}
+                  >
+                    {sol.commentedCode ? "Detailed annotation" : "Guided annotation"}
+                  </span>
+                )}
               </div>
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{sol.approach}</p>
               <pre className="mt-2 overflow-x-auto rounded-lg bg-slate-950 p-3 font-mono text-[13px] leading-relaxed text-slate-100">
-                <code>{sol.code[lang]}</code>
+                <code>
+                  {codeStyle === "commented"
+                    ? sol.commentedCode?.[lang] ?? annotateCode(sol.code[lang], sol.approach)
+                    : sol.code[lang]}
+                </code>
               </pre>
             </div>
           ))}
@@ -385,4 +575,27 @@ function SolutionsCard({
       )}
     </Card>
   );
+}
+
+/** Provide a readable fallback while bespoke line-by-line annotations are authored. */
+function annotateCode(code: string, approach: string): string {
+  const annotated = code
+    .split("\n")
+    .map((line) => {
+      const statement = line.trim();
+      if (!statement || statement.startsWith("//") || statement === "}" || statement === "});") {
+        return line;
+      }
+      const indent = line.slice(0, line.length - line.trimStart().length);
+      let note = "Perform the next operation required by this approach.";
+      if (/^function\b/.test(statement)) note = "Define the function that implements this approach.";
+      else if (/^(const|let|var)\b/.test(statement)) note = "Initialize state that will be updated as the algorithm runs.";
+      else if (/^(for|while)\b/.test(statement)) note = "Repeat this step for each remaining candidate or input value.";
+      else if (/^if\b/.test(statement)) note = "Check whether this case changes the algorithm's next action.";
+      else if (/^return\b/.test(statement)) note = "Return the final value computed by the approach.";
+      else if (/\+\+|--|\+=|-=|\*=|\/=/.test(statement)) note = "Update the running state for the next iteration.";
+      return `${indent}// ${note}\n${line}`;
+    })
+    .join("\n");
+  return `// Approach: ${approach}\n// This guided version explains the role of each implementation step.\n\n${annotated}`;
 }

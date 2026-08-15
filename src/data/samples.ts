@@ -59,6 +59,24 @@ Write \`countEvens(numbers)\` that returns how many values in the list are even.
     "A number is even when the remainder after dividing by 2 is zero: `n % 2 === 0`. Keep a running count.",
     "Set count = 0. For each n in numbers, if n % 2 === 0 then count += 1. Return count.",
   ],
+  walkthrough: [
+    {
+      title: "Choose the condition to count",
+      body: "A value is even exactly when dividing it by `2` leaves a remainder of `0`, so the useful test is `n % 2 === 0`.",
+    },
+    {
+      title: "Keep one running total",
+      body: "Start a counter at `0`. Inspect each value once and increment the counter only when that value passes the evenness test.",
+    },
+    {
+      title: "Check the boundary cases",
+      body: "The same rule handles negative values and `0`. An empty input performs no increments, so it correctly returns `0` without special handling.",
+    },
+    {
+      title: "Return after the scan",
+      body: "Once every value has been considered, the counter is the number of even entries. This uses constant extra space and linear time.",
+    },
+  ],
   solutions: [
     {
       label: "Single pass",
@@ -82,6 +100,42 @@ Write \`countEvens(numbers)\` that returns how many values in the list are even.
 }
 `,
       },
+      commentedCode: {
+        js: `function countEvens(numbers) {
+  // No even values have been found before the scan begins.
+  let count = 0;
+
+  // Inspect every value exactly once.
+  for (const n of numbers) {
+    // A remainder of zero means the value is divisible by two.
+    if (n % 2 === 0) {
+      // Record this qualifying value in the running total.
+      count++;
+    }
+  }
+
+  // The total now includes every even value in the input.
+  return count;
+}
+`,
+        ts: `function countEvens(numbers: number[]): number {
+  // No even values have been found before the scan begins.
+  let count = 0;
+
+  // Inspect every value exactly once.
+  for (const n of numbers) {
+    // A remainder of zero means the value is divisible by two.
+    if (n % 2 === 0) {
+      // Record this qualifying value in the running total.
+      count++;
+    }
+  }
+
+  // The total now includes every even value in the input.
+  return count;
+}
+`,
+      },
       timeComplexity: "O(n)",
       spaceComplexity: "O(1)",
     },
@@ -95,6 +149,20 @@ Write \`countEvens(numbers)\` that returns how many values in the list are even.
 }
 `,
         ts: `function countEvens(numbers: number[]): number {
+  return numbers.filter((n) => n % 2 === 0).length;
+}
+`,
+      },
+      commentedCode: {
+        js: `function countEvens(numbers) {
+  // Filter tests each value and keeps only those divisible by two.
+  // The filtered array's length is therefore the number of even values.
+  return numbers.filter((n) => n % 2 === 0).length;
+}
+`,
+        ts: `function countEvens(numbers: number[]): number {
+  // Filter tests each value and keeps only those divisible by two.
+  // The filtered array's length is therefore the number of even values.
   return numbers.filter((n) => n % 2 === 0).length;
 }
 `,
@@ -166,6 +234,24 @@ Write \`pivotIndex(values)\` that returns the **leftmost** index that balances t
     "Compute the total once. As you move the pivot rightward, the right side is `total - left - values[i]`. Keep `left` updated as you go.",
     "total = sum(values); left = 0; for i in range: right = total - left - values[i]; if left === right return i; left += values[i]; return -1.",
   ],
+  walkthrough: [
+    {
+      title: "Write the balance equation",
+      body: "At index `i`, the pivot value belongs to neither side. If `left` is the sum before `i`, then the sum after it is `total - left - values[i]`.",
+    },
+    {
+      title: "Compute shared work once",
+      body: "Calculate the array's total before checking candidates. That lets every right-side sum come from the balance equation instead of another nested scan.",
+    },
+    {
+      title: "Sweep candidates from left to right",
+      body: "Begin with `left = 0`. For each index, derive `right`, compare the two sides, and only then add the current value to `left` for the next candidate.",
+    },
+    {
+      title: "Preserve the leftmost rule",
+      body: "Return immediately on the first equality because the sweep visits indices in ascending order. If none balance, return `-1`.",
+    },
+  ],
   solutions: [
     {
       label: "Brute force",
@@ -191,6 +277,60 @@ Write \`pivotIndex(values)\` that returns the **leftmost** index that balances t
     for (let j = i + 1; j < values.length; j++) right += values[j];
     if (left === right) return i;
   }
+  return -1;
+}
+`,
+      },
+      commentedCode: {
+        js: `function pivotIndex(values) {
+  // Try each index in ascending order so the first match is leftmost.
+  for (let i = 0; i < values.length; i++) {
+    // Rebuild the two side sums for this candidate pivot.
+    let left = 0;
+    let right = 0;
+
+    // Sum every value strictly before the pivot.
+    for (let j = 0; j < i; j++) {
+      left += values[j];
+    }
+    // Sum every value strictly after the pivot.
+    for (let j = i + 1; j < values.length; j++) {
+      right += values[j];
+    }
+
+    // Equal side sums make this index a valid balancing point.
+    if (left === right) {
+      return i;
+    }
+  }
+
+  // No index balanced the ledger.
+  return -1;
+}
+`,
+        ts: `function pivotIndex(values: number[]): number {
+  // Try each index in ascending order so the first match is leftmost.
+  for (let i = 0; i < values.length; i++) {
+    // Rebuild the two side sums for this candidate pivot.
+    let left = 0;
+    let right = 0;
+
+    // Sum every value strictly before the pivot.
+    for (let j = 0; j < i; j++) {
+      left += values[j];
+    }
+    // Sum every value strictly after the pivot.
+    for (let j = i + 1; j < values.length; j++) {
+      right += values[j];
+    }
+
+    // Equal side sums make this index a valid balancing point.
+    if (left === right) {
+      return i;
+    }
+  }
+
+  // No index balanced the ledger.
   return -1;
 }
 `,
@@ -224,6 +364,58 @@ Write \`pivotIndex(values)\` that returns the **leftmost** index that balances t
     if (left === right) return i;
     left += values[i];
   }
+  return -1;
+}
+`,
+      },
+      commentedCode: {
+        js: `function pivotIndex(values) {
+  // Compute the sum of the whole array once.
+  let total = 0;
+  for (const value of values) {
+    total += value;
+  }
+
+  // Nothing lies to the left of the first candidate.
+  let left = 0;
+  // Visit candidates in order to guarantee the leftmost answer.
+  for (let i = 0; i < values.length; i++) {
+    // Remove the left side and pivot value from the total to get the right side.
+    const right = total - left - values[i];
+    if (left === right) {
+      return i;
+    }
+
+    // The current pivot joins the left side of the next candidate.
+    left += values[i];
+  }
+
+  // Every candidate was unbalanced.
+  return -1;
+}
+`,
+        ts: `function pivotIndex(values: number[]): number {
+  // Compute the sum of the whole array once.
+  let total = 0;
+  for (const value of values) {
+    total += value;
+  }
+
+  // Nothing lies to the left of the first candidate.
+  let left = 0;
+  // Visit candidates in order to guarantee the leftmost answer.
+  for (let i = 0; i < values.length; i++) {
+    // Remove the left side and pivot value from the total to get the right side.
+    const right = total - left - values[i];
+    if (left === right) {
+      return i;
+    }
+
+    // The current pivot joins the left side of the next candidate.
+    left += values[i];
+  }
+
+  // Every candidate was unbalanced.
   return -1;
 }
 `,
@@ -300,6 +492,24 @@ Write \`mergeWindows(windows)\` that returns the smallest set of non-overlapping
     "Sort by start. Walk the sorted list keeping a 'current' merged window; if the next start is <= current end, extend the current end, otherwise push a new window.",
     "sorted = windows sorted by start; result = []; for [s, e] in sorted: if result not empty and s <= result.last.end: result.last.end = max(end, e); else push [s, e]; return result.",
   ],
+  walkthrough: [
+    {
+      title: "Put windows in a useful order",
+      body: "Sort a copy by start time. After sorting, any window that can overlap the current merged group appears before the first window that must begin a new group.",
+    },
+    {
+      title: "Maintain the merged prefix",
+      body: "Keep an output array whose last entry represents every overlapping window seen in the current group. Earlier output entries are already final and disjoint.",
+    },
+    {
+      title: "Merge or start a group",
+      body: "If the next start is at most the last merged end, extend that end to the larger endpoint. Otherwise, append a new `[start, end]` group.",
+    },
+    {
+      title: "Return the ordered groups",
+      body: "Once the sweep ends, every source window is covered and no two output groups overlap. Copying before sorting also leaves the caller's input order untouched.",
+    },
+  ],
   solutions: [
     {
       label: "Repeated pairwise merge (brute force)",
@@ -351,6 +561,78 @@ Write \`mergeWindows(windows)\` that returns the smallest set of non-overlapping
 }
 `,
       },
+      commentedCode: {
+        js: `function mergeWindows(windows) {
+  // Copy every interval so merging never mutates the caller's nested arrays.
+  const result = windows.map((window) => [window[0], window[1]]);
+  // Begin with a pass still required.
+  let changed = true;
+
+  // Repeat until a complete pass finds no overlapping pair.
+  while (changed) {
+    changed = false;
+    // Choose the first interval in a possible pair.
+    for (let i = 0; i < result.length && !changed; i++) {
+      // Compare it with every later interval.
+      for (let j = i + 1; j < result.length; j++) {
+        const a = result[i];
+        const b = result[j];
+
+        // Two closed intervals overlap when neither lies completely outside the other.
+        if (a[0] <= b[1] && b[0] <= a[1]) {
+          // Expand a to cover the full union of both intervals.
+          a[0] = Math.min(a[0], b[0]);
+          a[1] = Math.max(a[1], b[1]);
+          // Remove b because its coverage now belongs to a.
+          result.splice(j, 1);
+          // Restart scanning because the expanded interval may unlock another merge.
+          changed = true;
+          break;
+        }
+      }
+    }
+  }
+
+  // Present the final disjoint intervals in ascending start order.
+  return result.sort((a, b) => a[0] - b[0]);
+}
+`,
+        ts: `function mergeWindows(windows: number[][]): number[][] {
+  // Copy every interval so merging never mutates the caller's nested arrays.
+  const result = windows.map((window) => [window[0], window[1]]);
+  // Begin with a pass still required.
+  let changed = true;
+
+  // Repeat until a complete pass finds no overlapping pair.
+  while (changed) {
+    changed = false;
+    // Choose the first interval in a possible pair.
+    for (let i = 0; i < result.length && !changed; i++) {
+      // Compare it with every later interval.
+      for (let j = i + 1; j < result.length; j++) {
+        const a = result[i];
+        const b = result[j];
+
+        // Two closed intervals overlap when neither lies completely outside the other.
+        if (a[0] <= b[1] && b[0] <= a[1]) {
+          // Expand a to cover the full union of both intervals.
+          a[0] = Math.min(a[0], b[0]);
+          a[1] = Math.max(a[1], b[1]);
+          // Remove b because its coverage now belongs to a.
+          result.splice(j, 1);
+          // Restart scanning because the expanded interval may unlock another merge.
+          changed = true;
+          break;
+        }
+      }
+    }
+  }
+
+  // Present the final disjoint intervals in ascending start order.
+  return result.sort((a, b) => a[0] - b[0]);
+}
+`,
+      },
       timeComplexity: "O(n²)",
       spaceComplexity: "O(n)",
     },
@@ -384,6 +666,52 @@ Write \`mergeWindows(windows)\` that returns the smallest set of non-overlapping
       merged.push([start, end]);
     }
   }
+  return merged;
+}
+`,
+      },
+      commentedCode: {
+        js: `function mergeWindows(windows) {
+  // Sort a shallow copy so the caller's outer array keeps its original order.
+  const sorted = [...windows].sort((a, b) => a[0] - b[0]);
+  // Build disjoint merged groups from left to right.
+  const merged = [];
+
+  for (const [start, end] of sorted) {
+    // Only the last group can overlap the next start in sorted order.
+    const last = merged[merged.length - 1];
+    if (last && start <= last[1]) {
+      // Overlap (including touching endpoints): extend the group if necessary.
+      last[1] = Math.max(last[1], end);
+    } else {
+      // No overlap means this interval begins a new independent group.
+      merged.push([start, end]);
+    }
+  }
+
+  // The groups are already sorted and mutually non-overlapping.
+  return merged;
+}
+`,
+        ts: `function mergeWindows(windows: number[][]): number[][] {
+  // Sort a shallow copy so the caller's outer array keeps its original order.
+  const sorted = [...windows].sort((a, b) => a[0] - b[0]);
+  // Build disjoint merged groups from left to right.
+  const merged: number[][] = [];
+
+  for (const [start, end] of sorted) {
+    // Only the last group can overlap the next start in sorted order.
+    const last = merged[merged.length - 1];
+    if (last && start <= last[1]) {
+      // Overlap (including touching endpoints): extend the group if necessary.
+      last[1] = Math.max(last[1], end);
+    } else {
+      // No overlap means this interval begins a new independent group.
+      merged.push([start, end]);
+    }
+  }
+
+  // The groups are already sorted and mutually non-overlapping.
   return merged;
 }
 `,

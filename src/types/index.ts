@@ -71,11 +71,20 @@ export interface WorkedExample {
 /** The three ordered hint tiers: gentle nudge, then approach, then pseudocode. */
 export type HintTriple = [nudge: string, approach: string, pseudocode: string];
 
+/** A code-free, implementation-oriented explanation revealed after all hints. */
+export interface WalkthroughStep {
+  title: string;
+  /** Markdown is supported so authors can call out values, invariants, and edge cases. */
+  body: string;
+}
+
 export interface Solution {
   label: string;
   /** Prose explanation of the approach. */
   approach: string;
   code: CodeByLanguage;
+  /** The same solution with every meaningful step explained inline. */
+  commentedCode?: CodeByLanguage;
   timeComplexity: string;
   spaceComplexity: string;
 }
@@ -108,6 +117,8 @@ export interface Problem {
   /** Held-out cases (>= 6) covering edge conditions. */
   hiddenTests: TestCase[];
   hints: HintTriple;
+  /** Code-free implementation guide, available once every hint is revealed. */
+  walkthrough?: WalkthroughStep[];
   /** At least two: brute force + optimal. */
   solutions: Solution[];
   xp: number;

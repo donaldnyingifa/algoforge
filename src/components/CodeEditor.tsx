@@ -1,4 +1,4 @@
-import Editor from "@monaco-editor/react";
+import Editor, { type OnMount } from "@monaco-editor/react";
 import type { Language } from "@/types";
 import { useThemeStore } from "@/store/themeStore";
 // Side-effect import: configure Monaco to bundle locally (offline, no CDN).
@@ -17,6 +17,7 @@ export function CodeEditor({
   height = "100%",
   fontSize = 14,
   readOnly = false,
+  onMount,
 }: {
   value: string;
   onChange: (next: string) => void;
@@ -24,6 +25,7 @@ export function CodeEditor({
   height?: string | number;
   fontSize?: number;
   readOnly?: boolean;
+  onMount?: OnMount;
 }) {
   const theme = useThemeStore((s) => s.theme);
 
@@ -34,6 +36,7 @@ export function CodeEditor({
       theme={theme === "dark" ? "vs-dark" : "light"}
       value={value}
       onChange={(v) => onChange(v ?? "")}
+      onMount={onMount}
       options={{
         fontSize,
         readOnly,

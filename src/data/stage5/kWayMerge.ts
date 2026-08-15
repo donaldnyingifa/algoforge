@@ -7,6 +7,110 @@ const P = ["k-way-merge"];
 
 const LISTS_NOTE = "Each inner list is already sorted ascending.";
 
+const COMMENTED_MIN_HEAP_SOURCE = `// A min-heap keeps its smallest value at index 0.
+class MinHeap {
+  // Store the complete binary tree in an array.
+  constructor() { this.data = []; }
+  // The number of stored values tells callers whether the heap is empty.
+  size() { return this.data.length; }
+  // The root is the smallest value, so reading it does not modify the heap.
+  peek() { return this.data[0]; }
+  // Append a value, then bubble it upward until the min-heap order is restored.
+  push(v) { this.data.push(v); this._up(this.data.length - 1); return this; }
+  // Remove and return the smallest value at the root.
+  pop() {
+    const n = this.data.length;
+    // An empty heap has no value to remove.
+    if (n === 0) return undefined;
+    // Save the root because it is the result of this pop.
+    const top = this.data[0];
+    // Take the final value out of the array so it can replace the root.
+    const last = this.data.pop();
+    // A multi-value heap needs its replacement root pushed back down.
+    if (n > 1) { this.data[0] = last; this._down(0); }
+    return top;
+  }
+  // Restore heap order after an insertion at index i.
+  _up(i) {
+    while (i > 0) {
+      // In an array-backed binary tree, this is i's parent index.
+      const p = (i - 1) >> 1;
+      // Stop once the parent is already no larger than its child.
+      if (this.data[p] <= this.data[i]) break;
+      // Otherwise swap the child with its larger parent.
+      const t = this.data[p]; this.data[p] = this.data[i]; this.data[i] = t;
+      i = p;
+    }
+  }
+  // Restore heap order after moving a value to index i.
+  _down(i) {
+    const n = this.data.length;
+    while (true) {
+      // Compare i with both of its children, if they exist.
+      let s = i; const l = 2 * i + 1; const r = 2 * i + 2;
+      if (l < n && this.data[l] < this.data[s]) s = l;
+      if (r < n && this.data[r] < this.data[s]) s = r;
+      // If i is still smallest, this subtree already satisfies heap order.
+      if (s === i) break;
+      // Move the smaller child up and continue from its old position.
+      const t = this.data[s]; this.data[s] = this.data[i]; this.data[i] = t;
+      i = s;
+    }
+  }
+}`;
+
+const COMMENTED_MAX_HEAP_SOURCE = `// A max-heap keeps its largest value at index 0.
+class MaxHeap {
+  // Store the complete binary tree in an array.
+  constructor() { this.data = []; }
+  // The number of stored values tells callers whether the heap is empty.
+  size() { return this.data.length; }
+  // The root is the largest value, so reading it does not modify the heap.
+  peek() { return this.data[0]; }
+  // Append a value, then bubble it upward until the max-heap order is restored.
+  push(v) { this.data.push(v); this._up(this.data.length - 1); return this; }
+  // Remove and return the largest value at the root.
+  pop() {
+    const n = this.data.length;
+    // An empty heap has no value to remove.
+    if (n === 0) return undefined;
+    // Save the root because it is the result of this pop.
+    const top = this.data[0];
+    // Take the final value out of the array so it can replace the root.
+    const last = this.data.pop();
+    // A multi-value heap needs its replacement root pushed back down.
+    if (n > 1) { this.data[0] = last; this._down(0); }
+    return top;
+  }
+  // Restore heap order after an insertion at index i.
+  _up(i) {
+    while (i > 0) {
+      // In an array-backed binary tree, this is i's parent index.
+      const p = (i - 1) >> 1;
+      // Stop once the parent is already no smaller than its child.
+      if (this.data[p] >= this.data[i]) break;
+      // Otherwise swap the child with its smaller parent.
+      const t = this.data[p]; this.data[p] = this.data[i]; this.data[i] = t;
+      i = p;
+    }
+  }
+  // Restore heap order after moving a value to index i.
+  _down(i) {
+    const n = this.data.length;
+    while (true) {
+      // Compare i with both of its children, if they exist.
+      let s = i; const l = 2 * i + 1; const r = 2 * i + 2;
+      if (l < n && this.data[l] > this.data[s]) s = l;
+      if (r < n && this.data[r] > this.data[s]) s = r;
+      // If i is still largest, this subtree already satisfies heap order.
+      if (s === i) break;
+      // Move the larger child up and continue from its old position.
+      const t = this.data[s]; this.data[s] = this.data[i]; this.data[i] = t;
+      i = s;
+    }
+  }
+}`;
+
 const drafts: ProblemDraft[] = [
   /* ---- drills (easy → hard) ---- */
   {
@@ -52,6 +156,10 @@ const drafts: ProblemDraft[] = [
         approach: "Repeatedly take the smaller of the two current heads.",
         js: "function mergeTwoLists(a, b) {\n  const out = [];\n  let i = 0, j = 0;\n  while (i < a.length && j < b.length) out.push(a[i] <= b[j] ? a[i++] : b[j++]);\n  while (i < a.length) out.push(a[i++]);\n  while (j < b.length) out.push(b[j++]);\n  return out;\n}\n",
         ts: "function mergeTwoLists(a: number[], b: number[]): number[] {\n  const out: number[] = [];\n  let i = 0, j = 0;\n  while (i < a.length && j < b.length) out.push(a[i] <= b[j] ? a[i++] : b[j++]);\n  while (i < a.length) out.push(a[i++]);\n  while (j < b.length) out.push(b[j++]);\n  return out;\n}\n",
+        commentedCode: {
+          js: "function mergeTwoLists(a, b) {\n  // Collect the merged values without changing either input list.\n  const out = [];\n  // i and j point at the next unmerged value in a and b.\n  let i = 0, j = 0;\n  // While both lists have candidates, emit the smaller current head.\n  while (i < a.length && j < b.length) out.push(a[i] <= b[j] ? a[i++] : b[j++]);\n  // If b ran out first, append every remaining value from a.\n  while (i < a.length) out.push(a[i++]);\n  // If a ran out first, append every remaining value from b.\n  while (j < b.length) out.push(b[j++]);\n  // Every input value now appears once in ascending order.\n  return out;\n}\n",
+          ts: "function mergeTwoLists(a: number[], b: number[]): number[] {\n  // Collect the merged values without changing either input list.\n  const out: number[] = [];\n  // i and j point at the next unmerged value in a and b.\n  let i = 0, j = 0;\n  // While both lists have candidates, emit the smaller current head.\n  while (i < a.length && j < b.length) out.push(a[i] <= b[j] ? a[i++] : b[j++]);\n  // If b ran out first, append every remaining value from a.\n  while (i < a.length) out.push(a[i++]);\n  // If a ran out first, append every remaining value from b.\n  while (j < b.length) out.push(b[j++]);\n  // Every input value now appears once in ascending order.\n  return out;\n}\n",
+        },
         time: "O(n + m)",
         space: "O(n + m)",
       },
@@ -60,6 +168,10 @@ const drafts: ProblemDraft[] = [
         approach: "Push everything into a min-heap and drain it in order.",
         js: `${MIN_HEAP_SOURCE}\nfunction mergeTwoLists(a, b) {\n  const h = new MinHeap();\n  for (const v of a) h.push(v);\n  for (const v of b) h.push(v);\n  const out = [];\n  while (h.size() > 0) out.push(h.pop());\n  return out;\n}\n`,
         ts: `${MIN_HEAP_SOURCE}\nfunction mergeTwoLists(a: number[], b: number[]): number[] {\n  const h = new MinHeap();\n  for (const v of a) h.push(v);\n  for (const v of b) h.push(v);\n  const out: number[] = [];\n  while (h.size() > 0) out.push(h.pop());\n  return out;\n}\n`,
+        commentedCode: {
+          js: `${COMMENTED_MIN_HEAP_SOURCE}\nfunction mergeTwoLists(a, b) {\n  // A min-heap will order all values regardless of which list supplied them.\n  const h = new MinHeap();\n  // Insert every value from the first sorted list.\n  for (const v of a) h.push(v);\n  // Insert every value from the second sorted list.\n  for (const v of b) h.push(v);\n  // Build a fresh merged result.\n  const out = [];\n  // Each pop removes the smallest value still waiting in the heap.\n  while (h.size() > 0) out.push(h.pop());\n  // The pop order is the complete ascending merge.\n  return out;\n}\n`,
+          ts: `${COMMENTED_MIN_HEAP_SOURCE}\nfunction mergeTwoLists(a: number[], b: number[]): number[] {\n  // A min-heap will order all values regardless of which list supplied them.\n  const h = new MinHeap();\n  // Insert every value from the first sorted list.\n  for (const v of a) h.push(v);\n  // Insert every value from the second sorted list.\n  for (const v of b) h.push(v);\n  // Build a fresh merged result.\n  const out: number[] = [];\n  // Each pop removes the smallest value still waiting in the heap.\n  while (h.size() > 0) out.push(h.pop());\n  // The pop order is the complete ascending merge.\n  return out;\n}\n`,
+        },
         time: "O((n+m) log (n+m))",
         space: "O(n + m)",
       },
@@ -107,6 +219,10 @@ const drafts: ProblemDraft[] = [
         approach: "Take the minimum of each non-empty list's first value.",
         js: "function smallestAcross(lists) {\n  let best = Infinity;\n  for (const list of lists) {\n    if (list.length > 0 && list[0] < best) best = list[0];\n  }\n  return best === Infinity ? -1 : best;\n}\n",
         ts: "function smallestAcross(lists: number[][]): number {\n  let best = Infinity;\n  for (const list of lists) {\n    if (list.length > 0 && list[0] < best) best = list[0];\n  }\n  return best === Infinity ? -1 : best;\n}\n",
+        commentedCode: {
+          js: "function smallestAcross(lists) {\n  // Infinity is a sentinel larger than every real candidate.\n  let best = Infinity;\n  // Inspect each sorted list once.\n  for (const list of lists) {\n    // A sorted list's first value is its only possible global-minimum candidate.\n    if (list.length > 0 && list[0] < best) best = list[0];\n  }\n  // If no list supplied a head, every list was empty.\n  return best === Infinity ? -1 : best;\n}\n",
+          ts: "function smallestAcross(lists: number[][]): number {\n  // Infinity is a sentinel larger than every real candidate.\n  let best = Infinity;\n  // Inspect each sorted list once.\n  for (const list of lists) {\n    // A sorted list's first value is its only possible global-minimum candidate.\n    if (list.length > 0 && list[0] < best) best = list[0];\n  }\n  // If no list supplied a head, every list was empty.\n  return best === Infinity ? -1 : best;\n}\n",
+        },
         time: "O(k)",
         space: "O(1)",
       },
@@ -115,6 +231,10 @@ const drafts: ProblemDraft[] = [
         approach: "Combine every value and take the smallest.",
         js: "function smallestAcross(lists) {\n  const all = [].concat(...lists);\n  return all.length === 0 ? -1 : Math.min(...all);\n}\n",
         ts: "function smallestAcross(lists: number[][]): number {\n  const all = ([] as number[]).concat(...lists);\n  return all.length === 0 ? -1 : Math.min(...all);\n}\n",
+        commentedCode: {
+          js: "function smallestAcross(lists) {\n  // Flatten every inner list into one array of candidates.\n  const all = [].concat(...lists);\n  // Avoid applying Math.min to no values; otherwise return the minimum.\n  return all.length === 0 ? -1 : Math.min(...all);\n}\n",
+          ts: "function smallestAcross(lists: number[][]): number {\n  // Start with a typed empty array, then flatten every inner list into it.\n  const all = ([] as number[]).concat(...lists);\n  // Avoid applying Math.min to no values; otherwise return the minimum.\n  return all.length === 0 ? -1 : Math.min(...all);\n}\n",
+        },
         time: "O(n)",
         space: "O(n)",
       },
@@ -162,6 +282,10 @@ const drafts: ProblemDraft[] = [
         approach: "Push every value into a min-heap, then pop them out in order.",
         js: `${MIN_HEAP_SOURCE}\nfunction mergeKLists(lists) {\n  const h = new MinHeap();\n  for (const list of lists) for (const v of list) h.push(v);\n  const out = [];\n  while (h.size() > 0) out.push(h.pop());\n  return out;\n}\n`,
         ts: `${MIN_HEAP_SOURCE}\nfunction mergeKLists(lists: number[][]): number[] {\n  const h = new MinHeap();\n  for (const list of lists) for (const v of list) h.push(v);\n  const out: number[] = [];\n  while (h.size() > 0) out.push(h.pop());\n  return out;\n}\n`,
+        commentedCode: {
+          js: `${COMMENTED_MIN_HEAP_SOURCE}\nfunction mergeKLists(lists) {\n  // The heap globally orders values from all of the input lists.\n  const h = new MinHeap();\n  // Visit every list and insert each of its values into the heap.\n  for (const list of lists) for (const v of list) h.push(v);\n  // Collect the merged output separately from the inputs.\n  const out = [];\n  // Repeatedly remove the smallest remaining value.\n  while (h.size() > 0) out.push(h.pop());\n  // The drained sequence contains every value in ascending order.\n  return out;\n}\n`,
+          ts: `${COMMENTED_MIN_HEAP_SOURCE}\nfunction mergeKLists(lists: number[][]): number[] {\n  // The heap globally orders values from all of the input lists.\n  const h = new MinHeap();\n  // Visit every list and insert each of its values into the heap.\n  for (const list of lists) for (const v of list) h.push(v);\n  // Collect the merged output separately from the inputs.\n  const out: number[] = [];\n  // Repeatedly remove the smallest remaining value.\n  while (h.size() > 0) out.push(h.pop());\n  // The drained sequence contains every value in ascending order.\n  return out;\n}\n`,
+        },
         time: "O(n log n)",
         space: "O(n)",
       },
@@ -170,6 +294,10 @@ const drafts: ProblemDraft[] = [
         approach: "Track a pointer per list and repeatedly take the smallest head.",
         js: "function mergeKLists(lists) {\n  const idx = new Array(lists.length).fill(0);\n  const out = [];\n  for (;;) {\n    let best = -1;\n    for (let i = 0; i < lists.length; i++) {\n      if (idx[i] >= lists[i].length) continue;\n      if (best === -1 || lists[i][idx[i]] < lists[best][idx[best]]) best = i;\n    }\n    if (best === -1) break;\n    out.push(lists[best][idx[best]]);\n    idx[best]++;\n  }\n  return out;\n}\n",
         ts: "function mergeKLists(lists: number[][]): number[] {\n  const idx = new Array(lists.length).fill(0);\n  const out: number[] = [];\n  for (;;) {\n    let best = -1;\n    for (let i = 0; i < lists.length; i++) {\n      if (idx[i] >= lists[i].length) continue;\n      if (best === -1 || lists[i][idx[i]] < lists[best][idx[best]]) best = i;\n    }\n    if (best === -1) break;\n    out.push(lists[best][idx[best]]);\n    idx[best]++;\n  }\n  return out;\n}\n",
+        commentedCode: {
+          js: "function mergeKLists(lists) {\n  // Each index points at its list's next unmerged value.\n  const idx = new Array(lists.length).fill(0);\n  // Accumulate the globally sorted result.\n  const out = [];\n  // One pass of this loop emits one value, until no list has a candidate.\n  for (;;) {\n    // -1 means no non-empty candidate list has been found yet.\n    let best = -1;\n    // Scan the current head of every list.\n    for (let i = 0; i < lists.length; i++) {\n      // An exhausted list cannot supply the next value.\n      if (idx[i] >= lists[i].length) continue;\n      // Remember the list whose current head is smallest.\n      if (best === -1 || lists[i][idx[i]] < lists[best][idx[best]]) best = i;\n    }\n    // No candidate means every list has been exhausted.\n    if (best === -1) break;\n    // Emit the smallest head found during this scan.\n    out.push(lists[best][idx[best]]);\n    // Advance only the list that supplied that value.\n    idx[best]++;\n  }\n  // All values have now been merged in ascending order.\n  return out;\n}\n",
+          ts: "function mergeKLists(lists: number[][]): number[] {\n  // Each index points at its list's next unmerged value.\n  const idx = new Array(lists.length).fill(0);\n  // Accumulate the globally sorted result.\n  const out: number[] = [];\n  // One pass of this loop emits one value, until no list has a candidate.\n  for (;;) {\n    // -1 means no non-empty candidate list has been found yet.\n    let best = -1;\n    // Scan the current head of every list.\n    for (let i = 0; i < lists.length; i++) {\n      // An exhausted list cannot supply the next value.\n      if (idx[i] >= lists[i].length) continue;\n      // Remember the list whose current head is smallest.\n      if (best === -1 || lists[i][idx[i]] < lists[best][idx[best]]) best = i;\n    }\n    // No candidate means every list has been exhausted.\n    if (best === -1) break;\n    // Emit the smallest head found during this scan.\n    out.push(lists[best][idx[best]]);\n    // Advance only the list that supplied that value.\n    idx[best]++;\n  }\n  // All values have now been merged in ascending order.\n  return out;\n}\n",
+        },
         time: "O(n·k)",
         space: "O(k)",
       },
@@ -217,6 +345,10 @@ const drafts: ProblemDraft[] = [
         approach: "Only the first k merged values matter.",
         js: `${MIN_HEAP_SOURCE}\nfunction kthSmallestInLists(lists, k) {\n  const h = new MinHeap();\n  for (const list of lists) for (const v of list) h.push(v);\n  let result = -1;\n  for (let i = 0; i < k; i++) result = h.pop();\n  return result;\n}\n`,
         ts: `${MIN_HEAP_SOURCE}\nfunction kthSmallestInLists(lists: number[][], k: number): number {\n  const h = new MinHeap();\n  for (const list of lists) for (const v of list) h.push(v);\n  let result = -1;\n  for (let i = 0; i < k; i++) result = h.pop();\n  return result;\n}\n`,
+        commentedCode: {
+          js: `${COMMENTED_MIN_HEAP_SOURCE}\nfunction kthSmallestInLists(lists, k) {\n  // A min-heap exposes the remaining values from smallest to largest.\n  const h = new MinHeap();\n  // Insert every value, including duplicates because each occupies its own rank.\n  for (const list of lists) for (const v of list) h.push(v);\n  // This placeholder is replaced by every successful pop.\n  let result = -1;\n  // After k pops, result is exactly the 1-indexed k-th smallest value.\n  for (let i = 0; i < k; i++) result = h.pop();\n  return result;\n}\n`,
+          ts: `${COMMENTED_MIN_HEAP_SOURCE}\nfunction kthSmallestInLists(lists: number[][], k: number): number {\n  // A min-heap exposes the remaining values from smallest to largest.\n  const h = new MinHeap();\n  // Insert every value, including duplicates because each occupies its own rank.\n  for (const list of lists) for (const v of list) h.push(v);\n  // This placeholder is replaced by every successful pop.\n  let result = -1;\n  // After k pops, result is exactly the 1-indexed k-th smallest value.\n  for (let i = 0; i < k; i++) result = h.pop();\n  return result;\n}\n`,
+        },
         time: "O(n log n)",
         space: "O(n)",
       },
@@ -225,6 +357,10 @@ const drafts: ProblemDraft[] = [
         approach: "Combine every value, sort, and index k-1.",
         js: "function kthSmallestInLists(lists, k) {\n  const all = [].concat(...lists).sort((a, b) => a - b);\n  return all[k - 1];\n}\n",
         ts: "function kthSmallestInLists(lists: number[][], k: number): number {\n  const all = ([] as number[]).concat(...lists).sort((a, b) => a - b);\n  return all[k - 1];\n}\n",
+        commentedCode: {
+          js: "function kthSmallestInLists(lists, k) {\n  // Flatten the lists, then sort every value into ascending rank order.\n  const all = [].concat(...lists).sort((a, b) => a - b);\n  // Convert the problem's 1-indexed k to the array's 0-indexed position.\n  return all[k - 1];\n}\n",
+          ts: "function kthSmallestInLists(lists: number[][], k: number): number {\n  // Build a typed flattened array, then sort it into ascending rank order.\n  const all = ([] as number[]).concat(...lists).sort((a, b) => a - b);\n  // Convert the problem's 1-indexed k to the array's 0-indexed position.\n  return all[k - 1];\n}\n",
+        },
         time: "O(n log n)",
         space: "O(n)",
       },
@@ -273,6 +409,10 @@ const drafts: ProblemDraft[] = [
         approach: "Treat the rows as lists and take the k smallest merged values.",
         js: `${MIN_HEAP_SOURCE}\nfunction kthSmallestInMatrix(matrix, k) {\n  const h = new MinHeap();\n  for (const row of matrix) for (const v of row) h.push(v);\n  let result = -1;\n  for (let i = 0; i < k; i++) result = h.pop();\n  return result;\n}\n`,
         ts: `${MIN_HEAP_SOURCE}\nfunction kthSmallestInMatrix(matrix: number[][], k: number): number {\n  const h = new MinHeap();\n  for (const row of matrix) for (const v of row) h.push(v);\n  let result = -1;\n  for (let i = 0; i < k; i++) result = h.pop();\n  return result;\n}\n`,
+        commentedCode: {
+          js: `${COMMENTED_MIN_HEAP_SOURCE}\nfunction kthSmallestInMatrix(matrix, k) {\n  // Treat the sorted matrix rows as a collection of sorted lists.\n  const h = new MinHeap();\n  // Insert every cell so the heap can expose their global ascending order.\n  for (const row of matrix) for (const v of row) h.push(v);\n  // Keep the most recently removed rank.\n  let result = -1;\n  // The k-th removal is the matrix's 1-indexed k-th smallest cell value.\n  for (let i = 0; i < k; i++) result = h.pop();\n  return result;\n}\n`,
+          ts: `${COMMENTED_MIN_HEAP_SOURCE}\nfunction kthSmallestInMatrix(matrix: number[][], k: number): number {\n  // Treat the sorted matrix rows as a collection of sorted lists.\n  const h = new MinHeap();\n  // Insert every cell so the heap can expose their global ascending order.\n  for (const row of matrix) for (const v of row) h.push(v);\n  // Keep the most recently removed rank.\n  let result = -1;\n  // The k-th removal is the matrix's 1-indexed k-th smallest cell value.\n  for (let i = 0; i < k; i++) result = h.pop();\n  return result;\n}\n`,
+        },
         time: "O(n log n)",
         space: "O(n)",
       },
@@ -281,6 +421,10 @@ const drafts: ProblemDraft[] = [
         approach: "Collect every cell, sort, and index k-1.",
         js: "function kthSmallestInMatrix(matrix, k) {\n  const all = [].concat(...matrix).sort((a, b) => a - b);\n  return all[k - 1];\n}\n",
         ts: "function kthSmallestInMatrix(matrix: number[][], k: number): number {\n  const all = ([] as number[]).concat(...matrix).sort((a, b) => a - b);\n  return all[k - 1];\n}\n",
+        commentedCode: {
+          js: "function kthSmallestInMatrix(matrix, k) {\n  // Flatten all rows and sort the cells into ascending rank order.\n  const all = [].concat(...matrix).sort((a, b) => a - b);\n  // A 1-indexed rank k lives at zero-based index k - 1.\n  return all[k - 1];\n}\n",
+          ts: "function kthSmallestInMatrix(matrix: number[][], k: number): number {\n  // Build a typed flattened array and sort the cells into ascending rank order.\n  const all = ([] as number[]).concat(...matrix).sort((a, b) => a - b);\n  // A 1-indexed rank k lives at zero-based index k - 1.\n  return all[k - 1];\n}\n",
+        },
         time: "O(n log n)",
         space: "O(n)",
       },
@@ -328,6 +472,10 @@ const drafts: ProblemDraft[] = [
         approach: "A sliding window over all tagged values that must cover every list id.",
         js: "function smallestRange(lists) {\n  const items = [];\n  lists.forEach((list, i) => list.forEach((v) => items.push([v, i])));\n  if (items.length === 0) return [];\n  items.sort((a, b) => a[0] - b[0] || a[1] - b[1]);\n  const need = lists.length;\n  const count = new Map();\n  let have = 0, left = 0;\n  let bestStart = items[0][0], bestEnd = items[items.length - 1][0];\n  for (let right = 0; right < items.length; right++) {\n    const li = items[right][1];\n    count.set(li, (count.get(li) || 0) + 1);\n    if (count.get(li) === 1) have++;\n    while (have === need) {\n      const start = items[left][0], end = items[right][0];\n      if (end - start < bestEnd - bestStart || (end - start === bestEnd - bestStart && start < bestStart)) {\n        bestStart = start; bestEnd = end;\n      }\n      const lo = items[left][1];\n      count.set(lo, count.get(lo) - 1);\n      if (count.get(lo) === 0) have--;\n      left++;\n    }\n  }\n  return [bestStart, bestEnd];\n}\n",
         ts: "function smallestRange(lists: number[][]): number[] {\n  const items: number[][] = [];\n  lists.forEach((list, i) => list.forEach((v) => items.push([v, i])));\n  if (items.length === 0) return [];\n  items.sort((a, b) => a[0] - b[0] || a[1] - b[1]);\n  const need = lists.length;\n  const count = new Map<number, number>();\n  let have = 0, left = 0;\n  let bestStart = items[0][0], bestEnd = items[items.length - 1][0];\n  for (let right = 0; right < items.length; right++) {\n    const li = items[right][1];\n    count.set(li, (count.get(li) || 0) + 1);\n    if (count.get(li) === 1) have++;\n    while (have === need) {\n      const start = items[left][0], end = items[right][0];\n      if (end - start < bestEnd - bestStart || (end - start === bestEnd - bestStart && start < bestStart)) {\n        bestStart = start; bestEnd = end;\n      }\n      const lo = items[left][1];\n      count.set(lo, (count.get(lo) as number) - 1);\n      if (count.get(lo) === 0) have--;\n      left++;\n    }\n  }\n  return [bestStart, bestEnd];\n}\n",
+        commentedCode: {
+          js: "function smallestRange(lists) {\n  // Store [value, source-list index] pairs so coverage remains traceable.\n  const items = [];\n  // Tag every value with the list that it can represent.\n  lists.forEach((list, i) => list.forEach((v) => items.push([v, i])));\n  // With no values there is no possible covering range.\n  if (items.length === 0) return [];\n  // Sort by value, then source index for deterministic ties.\n  items.sort((a, b) => a[0] - b[0] || a[1] - b[1]);\n  // A valid window must contain this many distinct source-list indices.\n  const need = lists.length;\n  // Count how many values from each source list are inside the window.\n  const count = new Map();\n  // have tracks covered lists; left is the window's first pair.\n  let have = 0, left = 0;\n  // Start with the widest possible value range as the incumbent answer.\n  let bestStart = items[0][0], bestEnd = items[items.length - 1][0];\n  // Expand the right edge one tagged value at a time.\n  for (let right = 0; right < items.length; right++) {\n    // Add the new right-edge value's source list to the window.\n    const li = items[right][1];\n    count.set(li, (count.get(li) || 0) + 1);\n    // Its first occurrence adds one newly covered list.\n    if (count.get(li) === 1) have++;\n    // Once all lists are covered, shrink while coverage remains valid.\n    while (have === need) {\n      // Sorted positions make these the window's numeric endpoints.\n      const start = items[left][0], end = items[right][0];\n      // Prefer a narrower range, then the smaller start on equal widths.\n      if (end - start < bestEnd - bestStart || (end - start === bestEnd - bestStart && start < bestStart)) {\n        bestStart = start; bestEnd = end;\n      }\n      // Remove the left-edge value before advancing the edge.\n      const lo = items[left][1];\n      count.set(lo, count.get(lo) - 1);\n      // Losing a source's last value makes the next window invalid.\n      if (count.get(lo) === 0) have--;\n      left++;\n    }\n  }\n  // Return the best valid endpoints found across all windows.\n  return [bestStart, bestEnd];\n}\n",
+          ts: "function smallestRange(lists: number[][]): number[] {\n  // Store [value, source-list index] pairs so coverage remains traceable.\n  const items: number[][] = [];\n  // Tag every value with the list that it can represent.\n  lists.forEach((list, i) => list.forEach((v) => items.push([v, i])));\n  // With no values there is no possible covering range.\n  if (items.length === 0) return [];\n  // Sort by value, then source index for deterministic ties.\n  items.sort((a, b) => a[0] - b[0] || a[1] - b[1]);\n  // A valid window must contain this many distinct source-list indices.\n  const need = lists.length;\n  // Count how many values from each source list are inside the window.\n  const count = new Map<number, number>();\n  // have tracks covered lists; left is the window's first pair.\n  let have = 0, left = 0;\n  // Start with the widest possible value range as the incumbent answer.\n  let bestStart = items[0][0], bestEnd = items[items.length - 1][0];\n  // Expand the right edge one tagged value at a time.\n  for (let right = 0; right < items.length; right++) {\n    // Add the new right-edge value's source list to the window.\n    const li = items[right][1];\n    count.set(li, (count.get(li) || 0) + 1);\n    // Its first occurrence adds one newly covered list.\n    if (count.get(li) === 1) have++;\n    // Once all lists are covered, shrink while coverage remains valid.\n    while (have === need) {\n      // Sorted positions make these the window's numeric endpoints.\n      const start = items[left][0], end = items[right][0];\n      // Prefer a narrower range, then the smaller start on equal widths.\n      if (end - start < bestEnd - bestStart || (end - start === bestEnd - bestStart && start < bestStart)) {\n        bestStart = start; bestEnd = end;\n      }\n      // Remove the left-edge value before advancing the edge.\n      const lo = items[left][1];\n      count.set(lo, (count.get(lo) as number) - 1);\n      // Losing a source's last value makes the next window invalid.\n      if (count.get(lo) === 0) have--;\n      left++;\n    }\n  }\n  // Return the best valid endpoints found across all windows.\n  return [bestStart, bestEnd];\n}\n",
+        },
         time: "O(n log n)",
         space: "O(n)",
       },
@@ -336,6 +484,10 @@ const drafts: ProblemDraft[] = [
         approach: "For every tagged value, extend rightward until all lists are covered.",
         js: "function smallestRange(lists) {\n  const all = [];\n  lists.forEach((l, i) => l.forEach((v) => all.push([v, i])));\n  if (all.length === 0) return [];\n  all.sort((a, b) => a[0] - b[0] || a[1] - b[1]);\n  const need = lists.length;\n  let best = null;\n  for (let i = 0; i < all.length; i++) {\n    const seen = new Set();\n    for (let j = i; j < all.length; j++) {\n      seen.add(all[j][1]);\n      if (seen.size === need) {\n        const start = all[i][0], end = all[j][0];\n        if (!best || end - start < best[1] - best[0]) best = [start, end];\n        break;\n      }\n    }\n  }\n  return best ? best : [];\n}\n",
         ts: "function smallestRange(lists: number[][]): number[] {\n  const all: number[][] = [];\n  lists.forEach((l, i) => l.forEach((v) => all.push([v, i])));\n  if (all.length === 0) return [];\n  all.sort((a, b) => a[0] - b[0] || a[1] - b[1]);\n  const need = lists.length;\n  let best: number[] | null = null;\n  for (let i = 0; i < all.length; i++) {\n    const seen = new Set<number>();\n    for (let j = i; j < all.length; j++) {\n      seen.add(all[j][1]);\n      if (seen.size === need) {\n        const start = all[i][0], end = all[j][0];\n        if (!best || end - start < best[1] - best[0]) best = [start, end];\n        break;\n      }\n    }\n  }\n  return best ? best : [];\n}\n",
+        commentedCode: {
+          js: "function smallestRange(lists) {\n  // Store every value beside the index of its source list.\n  const all = [];\n  lists.forEach((l, i) => l.forEach((v) => all.push([v, i])));\n  // No tagged values means no range can cover the lists.\n  if (all.length === 0) return [];\n  // Sort by value so every candidate interval is a contiguous slice.\n  all.sort((a, b) => a[0] - b[0] || a[1] - b[1]);\n  // A covering interval must encounter every source-list index.\n  const need = lists.length;\n  // null records that no valid interval has been found yet.\n  let best = null;\n  // Try each sorted value as a possible left endpoint.\n  for (let i = 0; i < all.length; i++) {\n    // Track the source lists covered from this chosen start.\n    const seen = new Set();\n    // Extend the right endpoint until the interval covers every list.\n    for (let j = i; j < all.length; j++) {\n      seen.add(all[j][1]);\n      if (seen.size === need) {\n        // The first covering end is the narrowest one for this start.\n        const start = all[i][0], end = all[j][0];\n        // Sorted start order naturally preserves the smaller start on width ties.\n        if (!best || end - start < best[1] - best[0]) best = [start, end];\n        break;\n      }\n    }\n  }\n  // Return the narrowest covering range, or empty if none was possible.\n  return best ? best : [];\n}\n",
+          ts: "function smallestRange(lists: number[][]): number[] {\n  // Store every value beside the index of its source list.\n  const all: number[][] = [];\n  lists.forEach((l, i) => l.forEach((v) => all.push([v, i])));\n  // No tagged values means no range can cover the lists.\n  if (all.length === 0) return [];\n  // Sort by value so every candidate interval is a contiguous slice.\n  all.sort((a, b) => a[0] - b[0] || a[1] - b[1]);\n  // A covering interval must encounter every source-list index.\n  const need = lists.length;\n  // null records that no valid interval has been found yet.\n  let best: number[] | null = null;\n  // Try each sorted value as a possible left endpoint.\n  for (let i = 0; i < all.length; i++) {\n    // Track the source lists covered from this chosen start.\n    const seen = new Set<number>();\n    // Extend the right endpoint until the interval covers every list.\n    for (let j = i; j < all.length; j++) {\n      seen.add(all[j][1]);\n      if (seen.size === need) {\n        // The first covering end is the narrowest one for this start.\n        const start = all[i][0], end = all[j][0];\n        // Sorted start order naturally preserves the smaller start on width ties.\n        if (!best || end - start < best[1] - best[0]) best = [start, end];\n        break;\n      }\n    }\n  }\n  // Return the narrowest covering range, or empty if none was possible.\n  return best ? best : [];\n}\n",
+        },
         time: "O(n²)",
         space: "O(n)",
       },
@@ -385,6 +537,10 @@ const drafts: ProblemDraft[] = [
         approach: "Take the maximum of each non-empty list's last value.",
         js: "function largestAcross(lists) {\n  let best = -Infinity;\n  for (const list of lists) {\n    if (list.length > 0 && list[list.length - 1] > best) best = list[list.length - 1];\n  }\n  return best === -Infinity ? -1 : best;\n}\n",
         ts: "function largestAcross(lists: number[][]): number {\n  let best = -Infinity;\n  for (const list of lists) {\n    if (list.length > 0 && list[list.length - 1] > best) best = list[list.length - 1];\n  }\n  return best === -Infinity ? -1 : best;\n}\n",
+        commentedCode: {
+          js: "function largestAcross(lists) {\n  // -Infinity is a sentinel smaller than every real candidate.\n  let best = -Infinity;\n  // Inspect each sorted list once.\n  for (const list of lists) {\n    // A sorted list's last value is its only possible global-maximum candidate.\n    if (list.length > 0 && list[list.length - 1] > best) best = list[list.length - 1];\n  }\n  // If no list supplied a tail, every list was empty.\n  return best === -Infinity ? -1 : best;\n}\n",
+          ts: "function largestAcross(lists: number[][]): number {\n  // -Infinity is a sentinel smaller than every real candidate.\n  let best = -Infinity;\n  // Inspect each sorted list once.\n  for (const list of lists) {\n    // A sorted list's last value is its only possible global-maximum candidate.\n    if (list.length > 0 && list[list.length - 1] > best) best = list[list.length - 1];\n  }\n  // If no list supplied a tail, every list was empty.\n  return best === -Infinity ? -1 : best;\n}\n",
+        },
         time: "O(k)",
         space: "O(1)",
       },
@@ -393,6 +549,10 @@ const drafts: ProblemDraft[] = [
         approach: "Combine every value and take the largest.",
         js: "function largestAcross(lists) {\n  const all = [].concat(...lists);\n  return all.length === 0 ? -1 : Math.max(...all);\n}\n",
         ts: "function largestAcross(lists: number[][]): number {\n  const all = ([] as number[]).concat(...lists);\n  return all.length === 0 ? -1 : Math.max(...all);\n}\n",
+        commentedCode: {
+          js: "function largestAcross(lists) {\n  // Flatten every inner list into one array of candidates.\n  const all = [].concat(...lists);\n  // Avoid applying Math.max to no values; otherwise return the maximum.\n  return all.length === 0 ? -1 : Math.max(...all);\n}\n",
+          ts: "function largestAcross(lists: number[][]): number {\n  // Start with a typed empty array, then flatten every inner list into it.\n  const all = ([] as number[]).concat(...lists);\n  // Avoid applying Math.max to no values; otherwise return the maximum.\n  return all.length === 0 ? -1 : Math.max(...all);\n}\n",
+        },
         time: "O(n)",
         space: "O(n)",
       },
@@ -440,6 +600,10 @@ const drafts: ProblemDraft[] = [
         approach: "Collect distinct values and order them.",
         js: "function mergeAndDedupe(lists) {\n  const set = new Set();\n  for (const list of lists) for (const v of list) set.add(v);\n  return [...set].sort((a, b) => a - b);\n}\n",
         ts: "function mergeAndDedupe(lists: number[][]): number[] {\n  const set = new Set<number>();\n  for (const list of lists) for (const v of list) set.add(v);\n  return [...set].sort((a, b) => a - b);\n}\n",
+        commentedCode: {
+          js: "function mergeAndDedupe(lists) {\n  // A Set keeps only one copy of each value encountered.\n  const set = new Set();\n  // Add every value from every list; repeated values do not change the Set.\n  for (const list of lists) for (const v of list) set.add(v);\n  // Convert the distinct values to an array and restore ascending order.\n  return [...set].sort((a, b) => a - b);\n}\n",
+          ts: "function mergeAndDedupe(lists: number[][]): number[] {\n  // A Set keeps only one copy of each value encountered.\n  const set = new Set<number>();\n  // Add every value from every list; repeated values do not change the Set.\n  for (const list of lists) for (const v of list) set.add(v);\n  // Convert the distinct values to an array and restore ascending order.\n  return [...set].sort((a, b) => a - b);\n}\n",
+        },
         time: "O(n log n)",
         space: "O(n)",
       },
@@ -448,6 +612,10 @@ const drafts: ProblemDraft[] = [
         approach: "Pop values in order and skip any equal to the previous one.",
         js: `${MIN_HEAP_SOURCE}\nfunction mergeAndDedupe(lists) {\n  const h = new MinHeap();\n  for (const list of lists) for (const v of list) h.push(v);\n  const out = [];\n  while (h.size() > 0) {\n    const v = h.pop();\n    if (out.length === 0 || out[out.length - 1] !== v) out.push(v);\n  }\n  return out;\n}\n`,
         ts: `${MIN_HEAP_SOURCE}\nfunction mergeAndDedupe(lists: number[][]): number[] {\n  const h = new MinHeap();\n  for (const list of lists) for (const v of list) h.push(v);\n  const out: number[] = [];\n  while (h.size() > 0) {\n    const v = h.pop();\n    if (out.length === 0 || out[out.length - 1] !== v) out.push(v);\n  }\n  return out;\n}\n`,
+        commentedCode: {
+          js: `${COMMENTED_MIN_HEAP_SOURCE}\nfunction mergeAndDedupe(lists) {\n  // The min-heap will expose all values in ascending order.\n  const h = new MinHeap();\n  // Insert every value, including duplicates that will be filtered later.\n  for (const list of lists) for (const v of list) h.push(v);\n  // Collect only the first occurrence of each popped value.\n  const out = [];\n  // Drain values from smallest to largest.\n  while (h.size() > 0) {\n    const v = h.pop();\n    // Equal values are adjacent in pop order, so compare with the last output.\n    if (out.length === 0 || out[out.length - 1] !== v) out.push(v);\n  }\n  // The result is both ascending and duplicate-free.\n  return out;\n}\n`,
+          ts: `${COMMENTED_MIN_HEAP_SOURCE}\nfunction mergeAndDedupe(lists: number[][]): number[] {\n  // The min-heap will expose all values in ascending order.\n  const h = new MinHeap();\n  // Insert every value, including duplicates that will be filtered later.\n  for (const list of lists) for (const v of list) h.push(v);\n  // Collect only the first occurrence of each popped value.\n  const out: number[] = [];\n  // Drain values from smallest to largest.\n  while (h.size() > 0) {\n    const v = h.pop();\n    // Equal values are adjacent in pop order, so compare with the last output.\n    if (out.length === 0 || out[out.length - 1] !== v) out.push(v);\n  }\n  // The result is both ascending and duplicate-free.\n  return out;\n}\n`,
+        },
         time: "O(n log n)",
         space: "O(n)",
       },
@@ -495,6 +663,10 @@ const drafts: ProblemDraft[] = [
         approach: "Combine the values and read the centre.",
         js: "function medianAcrossLists(lists) {\n  const all = [].concat(...lists).sort((a, b) => a - b);\n  if (all.length === 0) return 0;\n  const mid = Math.floor(all.length / 2);\n  return all.length % 2 === 1 ? all[mid] : (all[mid - 1] + all[mid]) / 2;\n}\n",
         ts: "function medianAcrossLists(lists: number[][]): number {\n  const all = ([] as number[]).concat(...lists).sort((a, b) => a - b);\n  if (all.length === 0) return 0;\n  const mid = Math.floor(all.length / 2);\n  return all.length % 2 === 1 ? all[mid] : (all[mid - 1] + all[mid]) / 2;\n}\n",
+        commentedCode: {
+          js: "function medianAcrossLists(lists) {\n  // Flatten and sort so array positions correspond to global ranks.\n  const all = [].concat(...lists).sort((a, b) => a - b);\n  // The problem defines the median of no values as 0.\n  if (all.length === 0) return 0;\n  // For odd lengths this is the middle; for even lengths it is the upper middle.\n  const mid = Math.floor(all.length / 2);\n  // Use one middle value when odd, or average both middle values when even.\n  return all.length % 2 === 1 ? all[mid] : (all[mid - 1] + all[mid]) / 2;\n}\n",
+          ts: "function medianAcrossLists(lists: number[][]): number {\n  // Build a typed flattened array and sort it into global rank order.\n  const all = ([] as number[]).concat(...lists).sort((a, b) => a - b);\n  // The problem defines the median of no values as 0.\n  if (all.length === 0) return 0;\n  // For odd lengths this is the middle; for even lengths it is the upper middle.\n  const mid = Math.floor(all.length / 2);\n  // Use one middle value when odd, or average both middle values when even.\n  return all.length % 2 === 1 ? all[mid] : (all[mid - 1] + all[mid]) / 2;\n}\n",
+        },
         time: "O(n log n)",
         space: "O(n)",
       },
@@ -503,6 +675,10 @@ const drafts: ProblemDraft[] = [
         approach: "Pop merged values until you reach the middle position(s).",
         js: `${MIN_HEAP_SOURCE}\nfunction medianAcrossLists(lists) {\n  const h = new MinHeap();\n  let total = 0;\n  for (const list of lists) for (const v of list) { h.push(v); total++; }\n  if (total === 0) return 0;\n  const mid = Math.floor(total / 2);\n  let prev = 0, cur = 0;\n  for (let i = 0; i <= mid; i++) { prev = cur; cur = h.pop(); }\n  return total % 2 === 1 ? cur : (prev + cur) / 2;\n}\n`,
         ts: `${MIN_HEAP_SOURCE}\nfunction medianAcrossLists(lists: number[][]): number {\n  const h = new MinHeap();\n  let total = 0;\n  for (const list of lists) for (const v of list) { h.push(v); total++; }\n  if (total === 0) return 0;\n  const mid = Math.floor(total / 2);\n  let prev = 0, cur = 0;\n  for (let i = 0; i <= mid; i++) { prev = cur; cur = h.pop(); }\n  return total % 2 === 1 ? cur : (prev + cur) / 2;\n}\n`,
+        commentedCode: {
+          js: `${COMMENTED_MIN_HEAP_SOURCE}\nfunction medianAcrossLists(lists) {\n  // A min-heap reveals the combined values in ascending rank order.\n  const h = new MinHeap();\n  // Count values while loading them so the middle rank is known.\n  let total = 0;\n  for (const list of lists) for (const v of list) { h.push(v); total++; }\n  // The problem defines the empty collection's median as 0.\n  if (total === 0) return 0;\n  // This is the middle rank for odd totals and the upper middle for even totals.\n  const mid = Math.floor(total / 2);\n  // Keep both the last pop and the pop immediately before it.\n  let prev = 0, cur = 0;\n  // Stop as soon as the upper-middle value has been removed.\n  for (let i = 0; i <= mid; i++) { prev = cur; cur = h.pop(); }\n  // Odd totals use cur; even totals average the two middle values.\n  return total % 2 === 1 ? cur : (prev + cur) / 2;\n}\n`,
+          ts: `${COMMENTED_MIN_HEAP_SOURCE}\nfunction medianAcrossLists(lists: number[][]): number {\n  // A min-heap reveals the combined values in ascending rank order.\n  const h = new MinHeap();\n  // Count values while loading them so the middle rank is known.\n  let total = 0;\n  for (const list of lists) for (const v of list) { h.push(v); total++; }\n  // The problem defines the empty collection's median as 0.\n  if (total === 0) return 0;\n  // This is the middle rank for odd totals and the upper middle for even totals.\n  const mid = Math.floor(total / 2);\n  // Keep both the last pop and the pop immediately before it.\n  let prev = 0, cur = 0;\n  // Stop as soon as the upper-middle value has been removed.\n  for (let i = 0; i <= mid; i++) { prev = cur; cur = h.pop(); }\n  // Odd totals use cur; even totals average the two middle values.\n  return total % 2 === 1 ? cur : (prev + cur) / 2;\n}\n`,
+        },
         time: "O(n log n)",
         space: "O(n)",
       },
@@ -550,6 +726,10 @@ const drafts: ProblemDraft[] = [
         approach: "Take the k largest merged values.",
         js: `${MAX_HEAP_SOURCE}\nfunction kthLargestInLists(lists, k) {\n  const h = new MaxHeap();\n  for (const list of lists) for (const v of list) h.push(v);\n  let result = -1;\n  for (let i = 0; i < k; i++) result = h.pop();\n  return result;\n}\n`,
         ts: `${MAX_HEAP_SOURCE}\nfunction kthLargestInLists(lists: number[][], k: number): number {\n  const h = new MaxHeap();\n  for (const list of lists) for (const v of list) h.push(v);\n  let result = -1;\n  for (let i = 0; i < k; i++) result = h.pop();\n  return result;\n}\n`,
+        commentedCode: {
+          js: `${COMMENTED_MAX_HEAP_SOURCE}\nfunction kthLargestInLists(lists, k) {\n  // A max-heap exposes the remaining values from largest to smallest.\n  const h = new MaxHeap();\n  // Insert every value, including duplicates because each occupies its own rank.\n  for (const list of lists) for (const v of list) h.push(v);\n  // This placeholder is replaced by every successful pop.\n  let result = -1;\n  // After k pops, result is exactly the 1-indexed k-th largest value.\n  for (let i = 0; i < k; i++) result = h.pop();\n  return result;\n}\n`,
+          ts: `${COMMENTED_MAX_HEAP_SOURCE}\nfunction kthLargestInLists(lists: number[][], k: number): number {\n  // A max-heap exposes the remaining values from largest to smallest.\n  const h = new MaxHeap();\n  // Insert every value, including duplicates because each occupies its own rank.\n  for (const list of lists) for (const v of list) h.push(v);\n  // This placeholder is replaced by every successful pop.\n  let result = -1;\n  // After k pops, result is exactly the 1-indexed k-th largest value.\n  for (let i = 0; i < k; i++) result = h.pop();\n  return result;\n}\n`,
+        },
         time: "O(n log n)",
         space: "O(n)",
       },
@@ -558,6 +738,10 @@ const drafts: ProblemDraft[] = [
         approach: "Combine every value, sort largest-first, and index k-1.",
         js: "function kthLargestInLists(lists, k) {\n  const all = [].concat(...lists).sort((a, b) => b - a);\n  return all[k - 1];\n}\n",
         ts: "function kthLargestInLists(lists: number[][], k: number): number {\n  const all = ([] as number[]).concat(...lists).sort((a, b) => b - a);\n  return all[k - 1];\n}\n",
+        commentedCode: {
+          js: "function kthLargestInLists(lists, k) {\n  // Flatten the lists, then sort every value from largest to smallest.\n  const all = [].concat(...lists).sort((a, b) => b - a);\n  // Convert the problem's 1-indexed k to the array's 0-indexed position.\n  return all[k - 1];\n}\n",
+          ts: "function kthLargestInLists(lists: number[][], k: number): number {\n  // Build a typed flattened array, then sort it from largest to smallest.\n  const all = ([] as number[]).concat(...lists).sort((a, b) => b - a);\n  // Convert the problem's 1-indexed k to the array's 0-indexed position.\n  return all[k - 1];\n}\n",
+        },
         time: "O(n log n)",
         space: "O(n)",
       },

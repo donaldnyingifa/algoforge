@@ -128,6 +128,14 @@ export const complexityQuestions: Record<string, QuizQuestion> = {};
 /* ---- Registration (used by content files) ------------------------ */
 
 export function registerProblem(problem: Problem): void {
+  const slugOwner = Object.values(problems).find(
+    (registered) => registered.slug === problem.slug && registered.id !== problem.id,
+  );
+  if (slugOwner) {
+    throw new Error(
+      `Duplicate problem slug "${problem.slug}" for "${slugOwner.id}" and "${problem.id}".`,
+    );
+  }
   problems[problem.id] = problem;
 }
 

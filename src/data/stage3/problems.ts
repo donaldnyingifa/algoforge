@@ -4,6 +4,61 @@ import { MIN_HEAP_SOURCE } from "@/data/shared/heap";
 
 const S = "dsa-s3";
 
+const COMMENTED_MIN_HEAP_SOURCE = `class MinHeap {
+  // Store the complete binary tree in level order inside an array.
+  constructor() { this.data = []; }
+  size() { return this.data.length; }
+  // The minimum is always kept at the root.
+  peek() { return this.data[0]; }
+  push(value) {
+    // Add at the end to preserve the complete-tree shape.
+    this.data.push(value);
+    // Restore heap order by moving the new value toward the root.
+    this._up(this.data.length - 1);
+    return this;
+  }
+  pop() {
+    const length = this.data.length;
+    if (length === 0) return undefined;
+    // Save the root because it is the minimum value to return.
+    const minimum = this.data[0];
+    const last = this.data.pop();
+    if (length > 1) {
+      // Fill the root with the final leaf, then move it down into place.
+      this.data[0] = last;
+      this._down(0);
+    }
+    return minimum;
+  }
+  _up(index) {
+    while (index > 0) {
+      const parent = (index - 1) >> 1;
+      // Stop once the parent is no greater than its child.
+      if (this.data[parent] <= this.data[index]) break;
+      const temp = this.data[parent];
+      this.data[parent] = this.data[index];
+      this.data[index] = temp;
+      index = parent;
+    }
+  }
+  _down(index) {
+    const length = this.data.length;
+    while (true) {
+      let smallest = index;
+      const left = 2 * index + 1;
+      const right = 2 * index + 2;
+      // Choose the smallest value among the node and its existing children.
+      if (left < length && this.data[left] < this.data[smallest]) smallest = left;
+      if (right < length && this.data[right] < this.data[smallest]) smallest = right;
+      if (smallest === index) break;
+      const temp = this.data[smallest];
+      this.data[smallest] = this.data[index];
+      this.data[index] = temp;
+      index = smallest;
+    }
+  }
+}`;
+
 const drafts: ProblemDraft[] = [
   /* -------------------- Recursion & Call Stack -------------------- */
   {
@@ -47,6 +102,7 @@ const drafts: ProblemDraft[] = [
         approach: "Multiply n by the factorial of n-1 down to the base case.",
         js: "function factorial(n) {\n  return n <= 1 ? 1 : n * factorial(n - 1);\n}\n",
         ts: "function factorial(n: number): number {\n  return n <= 1 ? 1 : n * factorial(n - 1);\n}\n",
+        commentedCode: { js: "function factorial(n) {\n  // Stop at 0! or 1!, whose value is 1.\n  if (n <= 1) return 1;\n  // Multiply n by the factorial of the next smaller integer.\n  return n * factorial(n - 1);\n}\n", ts: "function factorial(n: number): number {\n  // Stop at 0! or 1!, whose value is 1.\n  if (n <= 1) return 1;\n  // Multiply n by the factorial of the next smaller integer.\n  return n * factorial(n - 1);\n}\n" },
         time: "O(n)",
         space: "O(n)",
       },
@@ -55,6 +111,7 @@ const drafts: ProblemDraft[] = [
         approach: "Multiply upward with a loop — no call-stack growth.",
         js: "function factorial(n) {\n  let product = 1;\n  for (let i = 2; i <= n; i++) product *= i;\n  return product;\n}\n",
         ts: "function factorial(n: number): number {\n  let product = 1;\n  for (let i = 2; i <= n; i++) product *= i;\n  return product;\n}\n",
+        commentedCode: { js: "function factorial(n) {\n  // Start with the multiplicative identity, which also handles 0! and 1!.\n  let product = 1;\n  // Multiply in every factor from 2 through n.\n  for (let i = 2; i <= n; i++) product *= i;\n  return product;\n}\n", ts: "function factorial(n: number): number {\n  // Start with the multiplicative identity, which also handles 0! and 1!.\n  let product = 1;\n  // Multiply in every factor from 2 through n.\n  for (let i = 2; i <= n; i++) product *= i;\n  return product;\n}\n" },
         time: "O(n)",
         space: "O(1)",
       },
@@ -102,6 +159,7 @@ const drafts: ProblemDraft[] = [
         approach: "Cache each result so every fib(k) is computed once.",
         js: "function fib(n) {\n  const memo = {};\n  function go(k) {\n    if (k < 2) return k;\n    if (memo[k] !== undefined) return memo[k];\n    return (memo[k] = go(k - 1) + go(k - 2));\n  }\n  return go(n);\n}\n",
         ts: "function fib(n: number): number {\n  const memo: Record<number, number> = {};\n  function go(k: number): number {\n    if (k < 2) return k;\n    if (memo[k] !== undefined) return memo[k];\n    return (memo[k] = go(k - 1) + go(k - 2));\n  }\n  return go(n);\n}\n",
+        commentedCode: { js: "function fib(n) {\n  // Cache completed Fibonacci values so overlapping calls do no repeated work.\n  const memo = {};\n  function go(k) {\n    // fib(0) and fib(1) are the recurrence's base cases.\n    if (k < 2) return k;\n    // Reuse a value that was already computed.\n    if (memo[k] !== undefined) return memo[k];\n    // Compute from the previous two values and cache the result.\n    return (memo[k] = go(k - 1) + go(k - 2));\n  }\n  return go(n);\n}\n", ts: "function fib(n: number): number {\n  // Cache completed Fibonacci values so overlapping calls do no repeated work.\n  const memo: Record<number, number> = {};\n  function go(k: number): number {\n    // fib(0) and fib(1) are the recurrence's base cases.\n    if (k < 2) return k;\n    // Reuse a value that was already computed.\n    if (memo[k] !== undefined) return memo[k];\n    // Compute from the previous two values and cache the result.\n    return (memo[k] = go(k - 1) + go(k - 2));\n  }\n  return go(n);\n}\n" },
         time: "O(n)",
         space: "O(n)",
       },
@@ -110,6 +168,7 @@ const drafts: ProblemDraft[] = [
         approach: "Track the previous two values and step forward.",
         js: "function fib(n) {\n  let a = 0, b = 1;\n  for (let i = 0; i < n; i++) { [a, b] = [b, a + b]; }\n  return a;\n}\n",
         ts: "function fib(n: number): number {\n  let a = 0, b = 1;\n  for (let i = 0; i < n; i++) { [a, b] = [b, a + b]; }\n  return a;\n}\n",
+        commentedCode: { js: "function fib(n) {\n  // Keep consecutive values: a is fib(i) and b is fib(i + 1).\n  let a = 0, b = 1;\n  // Roll the pair forward n times without storing the full sequence.\n  for (let i = 0; i < n; i++) { [a, b] = [b, a + b]; }\n  return a;\n}\n", ts: "function fib(n: number): number {\n  // Keep consecutive values: a is fib(i) and b is fib(i + 1).\n  let a = 0, b = 1;\n  // Roll the pair forward n times without storing the full sequence.\n  for (let i = 0; i < n; i++) { [a, b] = [b, a + b]; }\n  return a;\n}\n" },
         time: "O(n)",
         space: "O(1)",
       },
@@ -156,6 +215,7 @@ const drafts: ProblemDraft[] = [
         approach: "Add n % 10 to the recursive result on the remaining digits.",
         js: "function sumDigitsRec(n) {\n  if (n < 10) return n;\n  return (n % 10) + sumDigitsRec(Math.floor(n / 10));\n}\n",
         ts: "function sumDigitsRec(n: number): number {\n  if (n < 10) return n;\n  return (n % 10) + sumDigitsRec(Math.floor(n / 10));\n}\n",
+        commentedCode: { js: "function sumDigitsRec(n) {\n  // A one-digit number is already its own digit sum.\n  if (n < 10) return n;\n  // Add the final digit, then recurse on all preceding digits.\n  return (n % 10) + sumDigitsRec(Math.floor(n / 10));\n}\n", ts: "function sumDigitsRec(n: number): number {\n  // A one-digit number is already its own digit sum.\n  if (n < 10) return n;\n  // Add the final digit, then recurse on all preceding digits.\n  return (n % 10) + sumDigitsRec(Math.floor(n / 10));\n}\n" },
         time: "O(log n)",
         space: "O(log n)",
       },
@@ -164,6 +224,7 @@ const drafts: ProblemDraft[] = [
         approach: "Loop off digits with modulo and division.",
         js: "function sumDigitsRec(n) {\n  let sum = 0;\n  while (n > 0) { sum += n % 10; n = Math.floor(n / 10); }\n  return sum;\n}\n",
         ts: "function sumDigitsRec(n: number): number {\n  let sum = 0;\n  while (n > 0) { sum += n % 10; n = Math.floor(n / 10); }\n  return sum;\n}\n",
+        commentedCode: { js: "function sumDigitsRec(n) {\n  // Accumulate digits as they are removed from right to left.\n  let sum = 0;\n  while (n > 0) {\n    // Modulo extracts the final digit.\n    sum += n % 10;\n    // Integer division discards that digit.\n    n = Math.floor(n / 10);\n  }\n  return sum;\n}\n", ts: "function sumDigitsRec(n: number): number {\n  // Accumulate digits as they are removed from right to left.\n  let sum = 0;\n  while (n > 0) {\n    // Modulo extracts the final digit.\n    sum += n % 10;\n    // Integer division discards that digit.\n    n = Math.floor(n / 10);\n  }\n  return sum;\n}\n" },
         time: "O(log n)",
         space: "O(1)",
       },
@@ -210,6 +271,7 @@ const drafts: ProblemDraft[] = [
         approach: "Square the half-power, multiplying by base for odd exponents.",
         js: "function power(base, exp) {\n  if (exp === 0) return 1;\n  const half = power(base, Math.floor(exp / 2));\n  return exp % 2 === 0 ? half * half : half * half * base;\n}\n",
         ts: "function power(base: number, exp: number): number {\n  if (exp === 0) return 1;\n  const half = power(base, Math.floor(exp / 2));\n  return exp % 2 === 0 ? half * half : half * half * base;\n}\n",
+        commentedCode: { js: "function power(base, exp) {\n  // Any base raised to zero equals one.\n  if (exp === 0) return 1;\n  // Compute one half-power and reuse it instead of recursing twice.\n  const half = power(base, Math.floor(exp / 2));\n  // Odd exponents need one additional factor of base.\n  return exp % 2 === 0 ? half * half : half * half * base;\n}\n", ts: "function power(base: number, exp: number): number {\n  // Any base raised to zero equals one.\n  if (exp === 0) return 1;\n  // Compute one half-power and reuse it instead of recursing twice.\n  const half = power(base, Math.floor(exp / 2));\n  // Odd exponents need one additional factor of base.\n  return exp % 2 === 0 ? half * half : half * half * base;\n}\n" },
         time: "O(log exp)",
         space: "O(log exp)",
       },
@@ -218,6 +280,7 @@ const drafts: ProblemDraft[] = [
         approach: "Multiply base into the result exp times.",
         js: "function power(base, exp) {\n  let result = 1;\n  for (let i = 0; i < exp; i++) result *= base;\n  return result;\n}\n",
         ts: "function power(base: number, exp: number): number {\n  let result = 1;\n  for (let i = 0; i < exp; i++) result *= base;\n  return result;\n}\n",
+        commentedCode: { js: "function power(base, exp) {\n  // Begin at one so an exponent of zero needs no special branch.\n  let result = 1;\n  // Multiply by the base exactly exp times.\n  for (let i = 0; i < exp; i++) result *= base;\n  return result;\n}\n", ts: "function power(base: number, exp: number): number {\n  // Begin at one so an exponent of zero needs no special branch.\n  let result = 1;\n  // Multiply by the base exactly exp times.\n  for (let i = 0; i < exp; i++) result *= base;\n  return result;\n}\n" },
         time: "O(exp)",
         space: "O(1)",
       },
@@ -267,6 +330,7 @@ const drafts: ProblemDraft[] = [
         approach: "Repeatedly swap adjacent out-of-order elements.",
         js: "function bubbleSort(nums) {\n  const a = [...nums];\n  for (let i = 0; i < a.length; i++) {\n    for (let j = 0; j < a.length - 1 - i; j++) {\n      if (a[j] > a[j + 1]) { const t = a[j]; a[j] = a[j + 1]; a[j + 1] = t; }\n    }\n  }\n  return a;\n}\n",
         ts: "function bubbleSort(nums: number[]): number[] {\n  const a = [...nums];\n  for (let i = 0; i < a.length; i++) {\n    for (let j = 0; j < a.length - 1 - i; j++) {\n      if (a[j] > a[j + 1]) { const t = a[j]; a[j] = a[j + 1]; a[j + 1] = t; }\n    }\n  }\n  return a;\n}\n",
+        commentedCode: { js: "function bubbleSort(nums) {\n  // Sort a copy so the input array is not changed.\n  const a = [...nums];\n  // After each pass, one largest remaining value is fixed at the end.\n  for (let i = 0; i < a.length; i++) {\n    // The final i positions are already sorted, so skip them.\n    for (let j = 0; j < a.length - 1 - i; j++) {\n      // Swap adjacent values when they are out of ascending order.\n      if (a[j] > a[j + 1]) { const t = a[j]; a[j] = a[j + 1]; a[j + 1] = t; }\n    }\n  }\n  return a;\n}\n", ts: "function bubbleSort(nums: number[]): number[] {\n  // Sort a copy so the input array is not changed.\n  const a = [...nums];\n  // After each pass, one largest remaining value is fixed at the end.\n  for (let i = 0; i < a.length; i++) {\n    // The final i positions are already sorted, so skip them.\n    for (let j = 0; j < a.length - 1 - i; j++) {\n      // Swap adjacent values when they are out of ascending order.\n      if (a[j] > a[j + 1]) { const t = a[j]; a[j] = a[j + 1]; a[j + 1] = t; }\n    }\n  }\n  return a;\n}\n" },
         time: "O(n²)",
         space: "O(n)",
       },
@@ -275,6 +339,7 @@ const drafts: ProblemDraft[] = [
         approach: "Stop once a full pass makes no swaps (already sorted).",
         js: "function bubbleSort(nums) {\n  const a = [...nums];\n  let swapped = true;\n  while (swapped) {\n    swapped = false;\n    for (let j = 0; j < a.length - 1; j++) {\n      if (a[j] > a[j + 1]) { const t = a[j]; a[j] = a[j + 1]; a[j + 1] = t; swapped = true; }\n    }\n  }\n  return a;\n}\n",
         ts: "function bubbleSort(nums: number[]): number[] {\n  const a = [...nums];\n  let swapped = true;\n  while (swapped) {\n    swapped = false;\n    for (let j = 0; j < a.length - 1; j++) {\n      if (a[j] > a[j + 1]) { const t = a[j]; a[j] = a[j + 1]; a[j + 1] = t; swapped = true; }\n    }\n  }\n  return a;\n}\n",
+        commentedCode: { js: "function bubbleSort(nums) {\n  // Work on a copy and enter the loop for the first pass.\n  const a = [...nums];\n  let swapped = true;\n  // A pass with no swaps proves the array is sorted.\n  while (swapped) {\n    swapped = false;\n    for (let j = 0; j < a.length - 1; j++) {\n      if (a[j] > a[j + 1]) {\n        // Repair this inversion and remember that another pass is needed.\n        const t = a[j]; a[j] = a[j + 1]; a[j + 1] = t; swapped = true;\n      }\n    }\n  }\n  return a;\n}\n", ts: "function bubbleSort(nums: number[]): number[] {\n  // Work on a copy and enter the loop for the first pass.\n  const a = [...nums];\n  let swapped = true;\n  // A pass with no swaps proves the array is sorted.\n  while (swapped) {\n    swapped = false;\n    for (let j = 0; j < a.length - 1; j++) {\n      if (a[j] > a[j + 1]) {\n        // Repair this inversion and remember that another pass is needed.\n        const t = a[j]; a[j] = a[j + 1]; a[j + 1] = t; swapped = true;\n      }\n    }\n  }\n  return a;\n}\n" },
         time: "O(n²)",
         space: "O(n)",
       },
@@ -322,6 +387,7 @@ const drafts: ProblemDraft[] = [
         approach: "Select the minimum of the remainder and swap it into place.",
         js: "function selectionSort(nums) {\n  const a = [...nums];\n  for (let i = 0; i < a.length; i++) {\n    let min = i;\n    for (let j = i + 1; j < a.length; j++) if (a[j] < a[min]) min = j;\n    if (min !== i) { const t = a[i]; a[i] = a[min]; a[min] = t; }\n  }\n  return a;\n}\n",
         ts: "function selectionSort(nums: number[]): number[] {\n  const a = [...nums];\n  for (let i = 0; i < a.length; i++) {\n    let min = i;\n    for (let j = i + 1; j < a.length; j++) if (a[j] < a[min]) min = j;\n    if (min !== i) { const t = a[i]; a[i] = a[min]; a[min] = t; }\n  }\n  return a;\n}\n",
+        commentedCode: { js: "function selectionSort(nums) {\n  // Sort a copy while growing a finished prefix from left to right.\n  const a = [...nums];\n  for (let i = 0; i < a.length; i++) {\n    // Assume the first unsorted position holds the remaining minimum.\n    let min = i;\n    // Search the rest of the unsorted suffix for a smaller value.\n    for (let j = i + 1; j < a.length; j++) if (a[j] < a[min]) min = j;\n    // Place that minimum at the next position in the sorted prefix.\n    if (min !== i) { const t = a[i]; a[i] = a[min]; a[min] = t; }\n  }\n  return a;\n}\n", ts: "function selectionSort(nums: number[]): number[] {\n  // Sort a copy while growing a finished prefix from left to right.\n  const a = [...nums];\n  for (let i = 0; i < a.length; i++) {\n    // Assume the first unsorted position holds the remaining minimum.\n    let min = i;\n    // Search the rest of the unsorted suffix for a smaller value.\n    for (let j = i + 1; j < a.length; j++) if (a[j] < a[min]) min = j;\n    // Place that minimum at the next position in the sorted prefix.\n    if (min !== i) { const t = a[i]; a[i] = a[min]; a[min] = t; }\n  }\n  return a;\n}\n" },
         time: "O(n²)",
         space: "O(n)",
       },
@@ -330,6 +396,7 @@ const drafts: ProblemDraft[] = [
         approach: "Repeatedly remove and append the current minimum.",
         js: "function selectionSort(nums) {\n  const rest = [...nums];\n  const out = [];\n  while (rest.length) {\n    let min = 0;\n    for (let j = 1; j < rest.length; j++) if (rest[j] < rest[min]) min = j;\n    out.push(rest.splice(min, 1)[0]);\n  }\n  return out;\n}\n",
         ts: "function selectionSort(nums: number[]): number[] {\n  const rest = [...nums];\n  const out = [];\n  while (rest.length) {\n    let min = 0;\n    for (let j = 1; j < rest.length; j++) if (rest[j] < rest[min]) min = j;\n    out.push(rest.splice(min, 1)[0]);\n  }\n  return out;\n}\n",
+        commentedCode: { js: "function selectionSort(nums) {\n  // Keep unselected values separate from the sorted output.\n  const rest = [...nums];\n  const out = [];\n  while (rest.length) {\n    // Find the index of the smallest value still available.\n    let min = 0;\n    for (let j = 1; j < rest.length; j++) if (rest[j] < rest[min]) min = j;\n    // Remove that minimum and append it to the ascending result.\n    out.push(rest.splice(min, 1)[0]);\n  }\n  return out;\n}\n", ts: "function selectionSort(nums: number[]): number[] {\n  // Keep unselected values separate from the sorted output.\n  const rest = [...nums];\n  const out: number[] = [];\n  while (rest.length) {\n    // Find the index of the smallest value still available.\n    let min = 0;\n    for (let j = 1; j < rest.length; j++) if (rest[j] < rest[min]) min = j;\n    // Remove that minimum and append it to the ascending result.\n    out.push(rest.splice(min, 1)[0]);\n  }\n  return out;\n}\n" },
         time: "O(n²)",
         space: "O(n)",
       },
@@ -377,6 +444,7 @@ const drafts: ProblemDraft[] = [
         approach: "Shift the sorted prefix right to open a slot for each key.",
         js: "function insertionSort(nums) {\n  const a = [...nums];\n  for (let i = 1; i < a.length; i++) {\n    const key = a[i];\n    let j = i - 1;\n    while (j >= 0 && a[j] > key) { a[j + 1] = a[j]; j--; }\n    a[j + 1] = key;\n  }\n  return a;\n}\n",
         ts: "function insertionSort(nums: number[]): number[] {\n  const a = [...nums];\n  for (let i = 1; i < a.length; i++) {\n    const key = a[i];\n    let j = i - 1;\n    while (j >= 0 && a[j] > key) { a[j + 1] = a[j]; j--; }\n    a[j + 1] = key;\n  }\n  return a;\n}\n",
+        commentedCode: { js: "function insertionSort(nums) {\n  // Work on a copy; the prefix before i stays sorted.\n  const a = [...nums];\n  for (let i = 1; i < a.length; i++) {\n    // Save the next value before shifting larger prefix values right.\n    const key = a[i];\n    let j = i - 1;\n    while (j >= 0 && a[j] > key) { a[j + 1] = a[j]; j--; }\n    // Insert the key into the gap left by the shifts.\n    a[j + 1] = key;\n  }\n  return a;\n}\n", ts: "function insertionSort(nums: number[]): number[] {\n  // Work on a copy; the prefix before i stays sorted.\n  const a = [...nums];\n  for (let i = 1; i < a.length; i++) {\n    // Save the next value before shifting larger prefix values right.\n    const key = a[i];\n    let j = i - 1;\n    while (j >= 0 && a[j] > key) { a[j + 1] = a[j]; j--; }\n    // Insert the key into the gap left by the shifts.\n    a[j + 1] = key;\n  }\n  return a;\n}\n" },
         time: "O(n²)",
         space: "O(n)",
       },
@@ -385,6 +453,7 @@ const drafts: ProblemDraft[] = [
         approach: "Find each key's slot with a binary search into the sorted output.",
         js: "function insertionSort(nums) {\n  const out = [];\n  for (const x of nums) {\n    let lo = 0, hi = out.length;\n    while (lo < hi) { const mid = (lo + hi) >> 1; if (out[mid] <= x) lo = mid + 1; else hi = mid; }\n    out.splice(lo, 0, x);\n  }\n  return out;\n}\n",
         ts: "function insertionSort(nums: number[]): number[] {\n  const out: number[] = [];\n  for (const x of nums) {\n    let lo = 0, hi = out.length;\n    while (lo < hi) { const mid = (lo + hi) >> 1; if (out[mid] <= x) lo = mid + 1; else hi = mid; }\n    out.splice(lo, 0, x);\n  }\n  return out;\n}\n",
+        commentedCode: { js: "function insertionSort(nums) {\n  // Maintain a separate output that is sorted after every insertion.\n  const out = [];\n  for (const x of nums) {\n    // Binary-search for the position after existing values equal to x.\n    let lo = 0, hi = out.length;\n    while (lo < hi) { const mid = (lo + hi) >> 1; if (out[mid] <= x) lo = mid + 1; else hi = mid; }\n    // Insert x at its sorted position; shifting still costs linear time.\n    out.splice(lo, 0, x);\n  }\n  return out;\n}\n", ts: "function insertionSort(nums: number[]): number[] {\n  // Maintain a separate output that is sorted after every insertion.\n  const out: number[] = [];\n  for (const x of nums) {\n    // Binary-search for the position after existing values equal to x.\n    let lo = 0, hi = out.length;\n    while (lo < hi) { const mid = (lo + hi) >> 1; if (out[mid] <= x) lo = mid + 1; else hi = mid; }\n    // Insert x at its sorted position; shifting still costs linear time.\n    out.splice(lo, 0, x);\n  }\n  return out;\n}\n" },
         time: "O(n²)",
         space: "O(n)",
       },
@@ -431,6 +500,7 @@ const drafts: ProblemDraft[] = [
         approach: "Verify every neighbour pair is in order.",
         js: "function isSorted(nums) {\n  for (let i = 1; i < nums.length; i++) if (nums[i - 1] > nums[i]) return false;\n  return true;\n}\n",
         ts: "function isSorted(nums: number[]): boolean {\n  for (let i = 1; i < nums.length; i++) if (nums[i - 1] > nums[i]) return false;\n  return true;\n}\n",
+        commentedCode: { js: "function isSorted(nums) {\n  // One descending adjacent pair is enough to disprove sorted order.\n  for (let i = 1; i < nums.length; i++) if (nums[i - 1] > nums[i]) return false;\n  // No inversion was found, so the whole array is non-decreasing.\n  return true;\n}\n", ts: "function isSorted(nums: number[]): boolean {\n  // One descending adjacent pair is enough to disprove sorted order.\n  for (let i = 1; i < nums.length; i++) if (nums[i - 1] > nums[i]) return false;\n  // No inversion was found, so the whole array is non-decreasing.\n  return true;\n}\n" },
         time: "O(n)",
         space: "O(1)",
       },
@@ -439,6 +509,7 @@ const drafts: ProblemDraft[] = [
         approach: "Use Array.every over neighbour pairs.",
         js: "function isSorted(nums) {\n  return nums.every((v, i) => i === 0 || nums[i - 1] <= v);\n}\n",
         ts: "function isSorted(nums: number[]): boolean {\n  return nums.every((v, i) => i === 0 || nums[i - 1] <= v);\n}\n",
+        commentedCode: { js: "function isSorted(nums) {\n  // The first value has no predecessor; every later value must be at least its predecessor.\n  return nums.every((value, i) => i === 0 || nums[i - 1] <= value);\n}\n", ts: "function isSorted(nums: number[]): boolean {\n  // The first value has no predecessor; every later value must be at least its predecessor.\n  return nums.every((value, i) => i === 0 || nums[i - 1] <= value);\n}\n" },
         time: "O(n)",
         space: "O(1)",
       },
@@ -488,6 +559,7 @@ const drafts: ProblemDraft[] = [
         approach: "Repeatedly take the smaller head of the two lists.",
         js: "function mergeTwoSorted(a, b) {\n  const out = [];\n  let i = 0, j = 0;\n  while (i < a.length && j < b.length) out.push(a[i] <= b[j] ? a[i++] : b[j++]);\n  while (i < a.length) out.push(a[i++]);\n  while (j < b.length) out.push(b[j++]);\n  return out;\n}\n",
         ts: "function mergeTwoSorted(a: number[], b: number[]): number[] {\n  const out: number[] = [];\n  let i = 0, j = 0;\n  while (i < a.length && j < b.length) out.push(a[i] <= b[j] ? a[i++] : b[j++]);\n  while (i < a.length) out.push(a[i++]);\n  while (j < b.length) out.push(b[j++]);\n  return out;\n}\n",
+        commentedCode: { js: "function mergeTwoSorted(a, b) {\n  // Build the merged result without changing either input.\n  const out = [];\n  let i = 0, j = 0;\n  // The smaller current value is the next value in sorted order.\n  while (i < a.length && j < b.length) out.push(a[i] <= b[j] ? a[i++] : b[j++]);\n  // Once one input ends, the other input's remainder is already sorted.\n  while (i < a.length) out.push(a[i++]);\n  while (j < b.length) out.push(b[j++]);\n  return out;\n}\n", ts: "function mergeTwoSorted(a: number[], b: number[]): number[] {\n  // Build the merged result without changing either input.\n  const out: number[] = [];\n  let i = 0, j = 0;\n  // The smaller current value is the next value in sorted order.\n  while (i < a.length && j < b.length) out.push(a[i] <= b[j] ? a[i++] : b[j++]);\n  // Once one input ends, the other input's remainder is already sorted.\n  while (i < a.length) out.push(a[i++]);\n  while (j < b.length) out.push(b[j++]);\n  return out;\n}\n" },
         time: "O(n + m)",
         space: "O(n + m)",
       },
@@ -496,6 +568,7 @@ const drafts: ProblemDraft[] = [
         approach: "Combine and sort — simpler, though it ignores the sorted inputs.",
         js: "function mergeTwoSorted(a, b) {\n  return [...a, ...b].sort((x, y) => x - y);\n}\n",
         ts: "function mergeTwoSorted(a: number[], b: number[]): number[] {\n  return [...a, ...b].sort((x, y) => x - y);\n}\n",
+        commentedCode: { js: "function mergeTwoSorted(a, b) {\n  // Copy both inputs into one array, then compare numerically for ascending order.\n  return [...a, ...b].sort((x, y) => x - y);\n}\n", ts: "function mergeTwoSorted(a: number[], b: number[]): number[] {\n  // Copy both inputs into one array, then compare numerically for ascending order.\n  return [...a, ...b].sort((x, y) => x - y);\n}\n" },
         time: "O((n+m) log (n+m))",
         space: "O(n + m)",
       },
@@ -543,6 +616,7 @@ const drafts: ProblemDraft[] = [
         approach: "Divide in half, sort each recursively, and merge the results.",
         js: "function mergeSort(nums) {\n  if (nums.length <= 1) return [...nums];\n  const mid = nums.length >> 1;\n  const l = mergeSort(nums.slice(0, mid));\n  const r = mergeSort(nums.slice(mid));\n  const out = [];\n  let i = 0, j = 0;\n  while (i < l.length && j < r.length) out.push(l[i] <= r[j] ? l[i++] : r[j++]);\n  while (i < l.length) out.push(l[i++]);\n  while (j < r.length) out.push(r[j++]);\n  return out;\n}\n",
         ts: "function mergeSort(nums: number[]): number[] {\n  if (nums.length <= 1) return [...nums];\n  const mid = nums.length >> 1;\n  const l = mergeSort(nums.slice(0, mid));\n  const r = mergeSort(nums.slice(mid));\n  const out: number[] = [];\n  let i = 0, j = 0;\n  while (i < l.length && j < r.length) out.push(l[i] <= r[j] ? l[i++] : r[j++]);\n  while (i < l.length) out.push(l[i++]);\n  while (j < r.length) out.push(r[j++]);\n  return out;\n}\n",
+        commentedCode: { js: "function mergeSort(nums) {\n  // Arrays of length zero or one are already sorted; return a copy.\n  if (nums.length <= 1) return [...nums];\n  // Divide the array into two smaller independent problems.\n  const mid = nums.length >> 1;\n  const left = mergeSort(nums.slice(0, mid));\n  const right = mergeSort(nums.slice(mid));\n  const out = [];\n  let i = 0, j = 0;\n  // Merge by repeatedly taking the smaller front value.\n  while (i < left.length && j < right.length) out.push(left[i] <= right[j] ? left[i++] : right[j++]);\n  // Append whichever sorted half still has values.\n  while (i < left.length) out.push(left[i++]);\n  while (j < right.length) out.push(right[j++]);\n  return out;\n}\n", ts: "function mergeSort(nums: number[]): number[] {\n  // Arrays of length zero or one are already sorted; return a copy.\n  if (nums.length <= 1) return [...nums];\n  // Divide the array into two smaller independent problems.\n  const mid = nums.length >> 1;\n  const left = mergeSort(nums.slice(0, mid));\n  const right = mergeSort(nums.slice(mid));\n  const out: number[] = [];\n  let i = 0, j = 0;\n  // Merge by repeatedly taking the smaller front value.\n  while (i < left.length && j < right.length) out.push(left[i] <= right[j] ? left[i++] : right[j++]);\n  // Append whichever sorted half still has values.\n  while (i < left.length) out.push(left[i++]);\n  while (j < right.length) out.push(right[j++]);\n  return out;\n}\n" },
         time: "O(n log n)",
         space: "O(n)",
       },
@@ -551,6 +625,7 @@ const drafts: ProblemDraft[] = [
         approach: "Iteratively merge runs of doubling width.",
         js: "function mergeSort(nums) {\n  let runs = nums.map((x) => [x]);\n  while (runs.length > 1) {\n    const next = [];\n    for (let i = 0; i < runs.length; i += 2) {\n      if (i + 1 >= runs.length) { next.push(runs[i]); continue; }\n      const a = runs[i], b = runs[i + 1], out = [];\n      let x = 0, y = 0;\n      while (x < a.length && y < b.length) out.push(a[x] <= b[y] ? a[x++] : b[y++]);\n      while (x < a.length) out.push(a[x++]);\n      while (y < b.length) out.push(b[y++]);\n      next.push(out);\n    }\n    runs = next;\n  }\n  return runs.length ? runs[0] : [];\n}\n",
         ts: "function mergeSort(nums: number[]): number[] {\n  let runs: number[][] = nums.map((x) => [x]);\n  while (runs.length > 1) {\n    const next: number[][] = [];\n    for (let i = 0; i < runs.length; i += 2) {\n      if (i + 1 >= runs.length) { next.push(runs[i]); continue; }\n      const a = runs[i], b = runs[i + 1], out: number[] = [];\n      let x = 0, y = 0;\n      while (x < a.length && y < b.length) out.push(a[x] <= b[y] ? a[x++] : b[y++]);\n      while (x < a.length) out.push(a[x++]);\n      while (y < b.length) out.push(b[y++]);\n      next.push(out);\n    }\n    runs = next;\n  }\n  return runs.length ? runs[0] : [];\n}\n",
+        commentedCode: { js: "function mergeSort(nums) {\n  // Treat each value as a sorted run of length one.\n  let runs = nums.map((value) => [value]);\n  // Merge adjacent runs until only the fully sorted run remains.\n  while (runs.length > 1) {\n    const next = [];\n    for (let i = 0; i < runs.length; i += 2) {\n      // Carry an unpaired final run into the next round unchanged.\n      if (i + 1 >= runs.length) { next.push(runs[i]); continue; }\n      const a = runs[i], b = runs[i + 1], out = [];\n      let x = 0, y = 0;\n      // Merge the current pair by selecting its smaller front value.\n      while (x < a.length && y < b.length) out.push(a[x] <= b[y] ? a[x++] : b[y++]);\n      while (x < a.length) out.push(a[x++]);\n      while (y < b.length) out.push(b[y++]);\n      next.push(out);\n    }\n    runs = next;\n  }\n  // The empty input has no run; otherwise return the final run.\n  return runs.length ? runs[0] : [];\n}\n", ts: "function mergeSort(nums: number[]): number[] {\n  // Treat each value as a sorted run of length one.\n  let runs: number[][] = nums.map((value) => [value]);\n  // Merge adjacent runs until only the fully sorted run remains.\n  while (runs.length > 1) {\n    const next: number[][] = [];\n    for (let i = 0; i < runs.length; i += 2) {\n      // Carry an unpaired final run into the next round unchanged.\n      if (i + 1 >= runs.length) { next.push(runs[i]); continue; }\n      const a = runs[i], b = runs[i + 1], out: number[] = [];\n      let x = 0, y = 0;\n      // Merge the current pair by selecting its smaller front value.\n      while (x < a.length && y < b.length) out.push(a[x] <= b[y] ? a[x++] : b[y++]);\n      while (x < a.length) out.push(a[x++]);\n      while (y < b.length) out.push(b[y++]);\n      next.push(out);\n    }\n    runs = next;\n  }\n  // The empty input has no run; otherwise return the final run.\n  return runs.length ? runs[0] : [];\n}\n" },
         time: "O(n log n)",
         space: "O(n)",
       },
@@ -598,6 +673,7 @@ const drafts: ProblemDraft[] = [
         approach: "Split around the last element, recurse on each side.",
         js: "function quickSort(nums) {\n  if (nums.length <= 1) return [...nums];\n  const pivot = nums[nums.length - 1];\n  const less = [], greater = [];\n  for (let i = 0; i < nums.length - 1; i++) {\n    (nums[i] <= pivot ? less : greater).push(nums[i]);\n  }\n  return [...quickSort(less), pivot, ...quickSort(greater)];\n}\n",
         ts: "function quickSort(nums: number[]): number[] {\n  if (nums.length <= 1) return [...nums];\n  const pivot = nums[nums.length - 1];\n  const less: number[] = [], greater: number[] = [];\n  for (let i = 0; i < nums.length - 1; i++) {\n    (nums[i] <= pivot ? less : greater).push(nums[i]);\n  }\n  return [...quickSort(less), pivot, ...quickSort(greater)];\n}\n",
+        commentedCode: { js: "function quickSort(nums) {\n  // A zero- or one-value partition is already sorted.\n  if (nums.length <= 1) return [...nums];\n  // Use the final value as the partition pivot.\n  const pivot = nums[nums.length - 1];\n  const less = [], greater = [];\n  // Place every non-pivot value on the correct side.\n  for (let i = 0; i < nums.length - 1; i++) {\n    (nums[i] <= pivot ? less : greater).push(nums[i]);\n  }\n  // Sort both partitions recursively and join them around the pivot.\n  return [...quickSort(less), pivot, ...quickSort(greater)];\n}\n", ts: "function quickSort(nums: number[]): number[] {\n  // A zero- or one-value partition is already sorted.\n  if (nums.length <= 1) return [...nums];\n  // Use the final value as the partition pivot.\n  const pivot = nums[nums.length - 1];\n  const less: number[] = [], greater: number[] = [];\n  // Place every non-pivot value on the correct side.\n  for (let i = 0; i < nums.length - 1; i++) {\n    (nums[i] <= pivot ? less : greater).push(nums[i]);\n  }\n  // Sort both partitions recursively and join them around the pivot.\n  return [...quickSort(less), pivot, ...quickSort(greater)];\n}\n" },
         time: "O(n log n) avg",
         space: "O(n)",
       },
@@ -606,6 +682,7 @@ const drafts: ProblemDraft[] = [
         approach: "Group into less, equal, greater to handle duplicates well.",
         js: "function quickSort(nums) {\n  if (nums.length <= 1) return [...nums];\n  const pivot = nums[nums.length >> 1];\n  const less = [], equal = [], greater = [];\n  for (const x of nums) {\n    if (x < pivot) less.push(x);\n    else if (x > pivot) greater.push(x);\n    else equal.push(x);\n  }\n  return [...quickSort(less), ...equal, ...quickSort(greater)];\n}\n",
         ts: "function quickSort(nums: number[]): number[] {\n  if (nums.length <= 1) return [...nums];\n  const pivot = nums[nums.length >> 1];\n  const less: number[] = [], equal: number[] = [], greater: number[] = [];\n  for (const x of nums) {\n    if (x < pivot) less.push(x);\n    else if (x > pivot) greater.push(x);\n    else equal.push(x);\n  }\n  return [...quickSort(less), ...equal, ...quickSort(greater)];\n}\n",
+        commentedCode: { js: "function quickSort(nums) {\n  // A partition with at most one value needs no further work.\n  if (nums.length <= 1) return [...nums];\n  // Select a middle value, which often avoids an extreme pivot.\n  const pivot = nums[nums.length >> 1];\n  const less = [], equal = [], greater = [];\n  // Three groups keep duplicate pivot values out of recursive calls.\n  for (const value of nums) {\n    if (value < pivot) less.push(value);\n    else if (value > pivot) greater.push(value);\n    else equal.push(value);\n  }\n  // Only the less and greater groups still need sorting.\n  return [...quickSort(less), ...equal, ...quickSort(greater)];\n}\n", ts: "function quickSort(nums: number[]): number[] {\n  // A partition with at most one value needs no further work.\n  if (nums.length <= 1) return [...nums];\n  // Select a middle value, which often avoids an extreme pivot.\n  const pivot = nums[nums.length >> 1];\n  const less: number[] = [], equal: number[] = [], greater: number[] = [];\n  // Three groups keep duplicate pivot values out of recursive calls.\n  for (const value of nums) {\n    if (value < pivot) less.push(value);\n    else if (value > pivot) greater.push(value);\n    else equal.push(value);\n  }\n  // Only the less and greater groups still need sorting.\n  return [...quickSort(less), ...equal, ...quickSort(greater)];\n}\n" },
         time: "O(n log n) avg",
         space: "O(n)",
       },
@@ -653,6 +730,7 @@ const drafts: ProblemDraft[] = [
         approach: "Heapify all values, then pop the minimum until empty.",
         js: `${MIN_HEAP_SOURCE}\nfunction heapSort(nums) {\n  const h = new MinHeap();\n  for (const v of nums) h.push(v);\n  const out = [];\n  while (h.size() > 0) out.push(h.pop());\n  return out;\n}\n`,
         ts: `${MIN_HEAP_SOURCE}\nfunction heapSort(nums: number[]): number[] {\n  const h = new MinHeap();\n  for (const v of nums) h.push(v);\n  const out: number[] = [];\n  while (h.size() > 0) out.push(h.pop());\n  return out;\n}\n`,
+        commentedCode: { js: `${COMMENTED_MIN_HEAP_SOURCE}\nfunction heapSort(nums) {\n  // Insert every value so the heap can expose minima in order.\n  const heap = new MinHeap();\n  for (const value of nums) heap.push(value);\n  const out = [];\n  // Repeatedly remove the smallest remaining value.\n  while (heap.size() > 0) out.push(heap.pop());\n  return out;\n}\n`, ts: `${COMMENTED_MIN_HEAP_SOURCE}\nfunction heapSort(nums: number[]): number[] {\n  // Insert every value so the heap can expose minima in order.\n  const heap = new MinHeap();\n  for (const value of nums) heap.push(value);\n  const out: number[] = [];\n  // Repeatedly remove the smallest remaining value.\n  while (heap.size() > 0) out.push(heap.pop());\n  return out;\n}\n` },
         time: "O(n log n)",
         space: "O(n)",
       },
@@ -661,6 +739,7 @@ const drafts: ProblemDraft[] = [
         approach: "Build a max-heap in the array, then repeatedly move the max to the end.",
         js: "function heapSort(nums) {\n  const a = [...nums];\n  const n = a.length;\n  const down = (i, size) => {\n    while (true) {\n      let s = i; const l = 2 * i + 1, r = 2 * i + 2;\n      if (l < size && a[l] > a[s]) s = l;\n      if (r < size && a[r] > a[s]) s = r;\n      if (s === i) break;\n      const t = a[s]; a[s] = a[i]; a[i] = t; i = s;\n    }\n  };\n  for (let i = (n >> 1) - 1; i >= 0; i--) down(i, n);\n  for (let end = n - 1; end > 0; end--) {\n    const t = a[0]; a[0] = a[end]; a[end] = t;\n    down(0, end);\n  }\n  return a;\n}\n",
         ts: "function heapSort(nums: number[]): number[] {\n  const a = [...nums];\n  const n = a.length;\n  const down = (i: number, size: number) => {\n    while (true) {\n      let s = i; const l = 2 * i + 1, r = 2 * i + 2;\n      if (l < size && a[l] > a[s]) s = l;\n      if (r < size && a[r] > a[s]) s = r;\n      if (s === i) break;\n      const t = a[s]; a[s] = a[i]; a[i] = t; i = s;\n    }\n  };\n  for (let i = (n >> 1) - 1; i >= 0; i--) down(i, n);\n  for (let end = n - 1; end > 0; end--) {\n    const t = a[0]; a[0] = a[end]; a[end] = t;\n    down(0, end);\n  }\n  return a;\n}\n",
+        commentedCode: { js: "function heapSort(nums) {\n  // Sort a copy by first arranging it as a max-heap.\n  const a = [...nums];\n  const n = a.length;\n  const down = (i, size) => {\n    while (true) {\n      // Find the largest of this node and its children inside the heap.\n      let largest = i; const left = 2 * i + 1, right = 2 * i + 2;\n      if (left < size && a[left] > a[largest]) largest = left;\n      if (right < size && a[right] > a[largest]) largest = right;\n      // Heap order is restored when the parent is already largest.\n      if (largest === i) break;\n      const temp = a[largest]; a[largest] = a[i]; a[i] = temp; i = largest;\n    }\n  };\n  // Sift every internal node down to build the initial max-heap.\n  for (let i = (n >> 1) - 1; i >= 0; i--) down(i, n);\n  for (let end = n - 1; end > 0; end--) {\n    // Move the heap maximum into its final position.\n    const temp = a[0]; a[0] = a[end]; a[end] = temp;\n    // Restore heap order in the shorter unsorted prefix.\n    down(0, end);\n  }\n  return a;\n}\n", ts: "function heapSort(nums: number[]): number[] {\n  // Sort a copy by first arranging it as a max-heap.\n  const a = [...nums];\n  const n = a.length;\n  const down = (i: number, size: number) => {\n    while (true) {\n      // Find the largest of this node and its children inside the heap.\n      let largest = i; const left = 2 * i + 1, right = 2 * i + 2;\n      if (left < size && a[left] > a[largest]) largest = left;\n      if (right < size && a[right] > a[largest]) largest = right;\n      // Heap order is restored when the parent is already largest.\n      if (largest === i) break;\n      const temp = a[largest]; a[largest] = a[i]; a[i] = temp; i = largest;\n    }\n  };\n  // Sift every internal node down to build the initial max-heap.\n  for (let i = (n >> 1) - 1; i >= 0; i--) down(i, n);\n  for (let end = n - 1; end > 0; end--) {\n    // Move the heap maximum into its final position.\n    const temp = a[0]; a[0] = a[end]; a[end] = temp;\n    // Restore heap order in the shorter unsorted prefix.\n    down(0, end);\n  }\n  return a;\n}\n" },
         time: "O(n log n)",
         space: "O(n)",
       },
@@ -710,6 +789,7 @@ const drafts: ProblemDraft[] = [
         approach: "Halve the search window until the target is found or the window empties.",
         js: "function binarySearch(sorted, target) {\n  let lo = 0, hi = sorted.length - 1;\n  while (lo <= hi) {\n    const mid = (lo + hi) >> 1;\n    if (sorted[mid] === target) return mid;\n    if (sorted[mid] < target) lo = mid + 1;\n    else hi = mid - 1;\n  }\n  return -1;\n}\n",
         ts: "function binarySearch(sorted: number[], target: number): number {\n  let lo = 0, hi = sorted.length - 1;\n  while (lo <= hi) {\n    const mid = (lo + hi) >> 1;\n    if (sorted[mid] === target) return mid;\n    if (sorted[mid] < target) lo = mid + 1;\n    else hi = mid - 1;\n  }\n  return -1;\n}\n",
+        commentedCode: { js: "function binarySearch(sorted, target) {\n  // Search inside the inclusive interval from lo through hi.\n  let lo = 0, hi = sorted.length - 1;\n  while (lo <= hi) {\n    const mid = (lo + hi) >> 1;\n    // A match can be returned immediately because values are distinct.\n    if (sorted[mid] === target) return mid;\n    // Discard the half that cannot contain the target.\n    if (sorted[mid] < target) lo = mid + 1;\n    else hi = mid - 1;\n  }\n  // An empty search interval means the target is absent.\n  return -1;\n}\n", ts: "function binarySearch(sorted: number[], target: number): number {\n  // Search inside the inclusive interval from lo through hi.\n  let lo = 0, hi = sorted.length - 1;\n  while (lo <= hi) {\n    const mid = (lo + hi) >> 1;\n    // A match can be returned immediately because values are distinct.\n    if (sorted[mid] === target) return mid;\n    // Discard the half that cannot contain the target.\n    if (sorted[mid] < target) lo = mid + 1;\n    else hi = mid - 1;\n  }\n  // An empty search interval means the target is absent.\n  return -1;\n}\n" },
         time: "O(log n)",
         space: "O(1)",
       },
@@ -718,6 +798,7 @@ const drafts: ProblemDraft[] = [
         approach: "A simple O(n) baseline for comparison.",
         js: "function binarySearch(sorted, target) {\n  return sorted.indexOf(target);\n}\n",
         ts: "function binarySearch(sorted: number[], target: number): number {\n  return sorted.indexOf(target);\n}\n",
+        commentedCode: { js: "function binarySearch(sorted, target) {\n  // indexOf scans from left to right and returns -1 when no match exists.\n  return sorted.indexOf(target);\n}\n", ts: "function binarySearch(sorted: number[], target: number): number {\n  // indexOf scans from left to right and returns -1 when no match exists.\n  return sorted.indexOf(target);\n}\n" },
         time: "O(n)",
         space: "O(1)",
       },
@@ -765,6 +846,7 @@ const drafts: ProblemDraft[] = [
         approach: "Record matches and shrink toward the left edge.",
         js: "function firstPosition(sorted, target) {\n  let lo = 0, hi = sorted.length - 1, res = -1;\n  while (lo <= hi) {\n    const mid = (lo + hi) >> 1;\n    if (sorted[mid] === target) { res = mid; hi = mid - 1; }\n    else if (sorted[mid] < target) lo = mid + 1;\n    else hi = mid - 1;\n  }\n  return res;\n}\n",
         ts: "function firstPosition(sorted: number[], target: number): number {\n  let lo = 0, hi = sorted.length - 1, res = -1;\n  while (lo <= hi) {\n    const mid = (lo + hi) >> 1;\n    if (sorted[mid] === target) { res = mid; hi = mid - 1; }\n    else if (sorted[mid] < target) lo = mid + 1;\n    else hi = mid - 1;\n  }\n  return res;\n}\n",
+        commentedCode: { js: "function firstPosition(sorted, target) {\n  // Keep the best match while searching an inclusive interval.\n  let lo = 0, hi = sorted.length - 1, result = -1;\n  while (lo <= hi) {\n    const mid = (lo + hi) >> 1;\n    if (sorted[mid] === target) {\n      // Record this match, then look left for an earlier duplicate.\n      result = mid; hi = mid - 1;\n    } else if (sorted[mid] < target) lo = mid + 1;\n    else hi = mid - 1;\n  }\n  return result;\n}\n", ts: "function firstPosition(sorted: number[], target: number): number {\n  // Keep the best match while searching an inclusive interval.\n  let lo = 0, hi = sorted.length - 1, result = -1;\n  while (lo <= hi) {\n    const mid = (lo + hi) >> 1;\n    if (sorted[mid] === target) {\n      // Record this match, then look left for an earlier duplicate.\n      result = mid; hi = mid - 1;\n    } else if (sorted[mid] < target) lo = mid + 1;\n    else hi = mid - 1;\n  }\n  return result;\n}\n" },
         time: "O(log n)",
         space: "O(1)",
       },
@@ -773,6 +855,7 @@ const drafts: ProblemDraft[] = [
         approach: "indexOf already returns the first match — an O(n) baseline.",
         js: "function firstPosition(sorted, target) {\n  return sorted.indexOf(target);\n}\n",
         ts: "function firstPosition(sorted: number[], target: number): number {\n  return sorted.indexOf(target);\n}\n",
+        commentedCode: { js: "function firstPosition(sorted, target) {\n  // indexOf returns the leftmost matching index, or -1 when absent.\n  return sorted.indexOf(target);\n}\n", ts: "function firstPosition(sorted: number[], target: number): number {\n  // indexOf returns the leftmost matching index, or -1 when absent.\n  return sorted.indexOf(target);\n}\n" },
         time: "O(n)",
         space: "O(1)",
       },
@@ -820,6 +903,7 @@ const drafts: ProblemDraft[] = [
         approach: "Find the first position not less than the target.",
         js: "function searchInsert(sorted, target) {\n  let lo = 0, hi = sorted.length;\n  while (lo < hi) {\n    const mid = (lo + hi) >> 1;\n    if (sorted[mid] < target) lo = mid + 1;\n    else hi = mid;\n  }\n  return lo;\n}\n",
         ts: "function searchInsert(sorted: number[], target: number): number {\n  let lo = 0, hi = sorted.length;\n  while (lo < hi) {\n    const mid = (lo + hi) >> 1;\n    if (sorted[mid] < target) lo = mid + 1;\n    else hi = mid;\n  }\n  return lo;\n}\n",
+        commentedCode: { js: "function searchInsert(sorted, target) {\n  // Search a half-open interval for the first value not below target.\n  let lo = 0, hi = sorted.length;\n  while (lo < hi) {\n    const mid = (lo + hi) >> 1;\n    // Values below target cannot be the insertion position.\n    if (sorted[mid] < target) lo = mid + 1;\n    else hi = mid;\n  }\n  // The converged boundary is either target's index or its insertion slot.\n  return lo;\n}\n", ts: "function searchInsert(sorted: number[], target: number): number {\n  // Search a half-open interval for the first value not below target.\n  let lo = 0, hi = sorted.length;\n  while (lo < hi) {\n    const mid = (lo + hi) >> 1;\n    // Values below target cannot be the insertion position.\n    if (sorted[mid] < target) lo = mid + 1;\n    else hi = mid;\n  }\n  // The converged boundary is either target's index or its insertion slot.\n  return lo;\n}\n" },
         time: "O(log n)",
         space: "O(1)",
       },
@@ -828,6 +912,7 @@ const drafts: ProblemDraft[] = [
         approach: "Return the first index ≥ target, or the length if none.",
         js: "function searchInsert(sorted, target) {\n  const i = sorted.findIndex((v) => v >= target);\n  return i === -1 ? sorted.length : i;\n}\n",
         ts: "function searchInsert(sorted: number[], target: number): number {\n  const i = sorted.findIndex((v) => v >= target);\n  return i === -1 ? sorted.length : i;\n}\n",
+        commentedCode: { js: "function searchInsert(sorted, target) {\n  // Find the first value that target can sit before without breaking order.\n  const index = sorted.findIndex((value) => value >= target);\n  // If every value is smaller, target belongs after the final element.\n  return index === -1 ? sorted.length : index;\n}\n", ts: "function searchInsert(sorted: number[], target: number): number {\n  // Find the first value that target can sit before without breaking order.\n  const index = sorted.findIndex((value) => value >= target);\n  // If every value is smaller, target belongs after the final element.\n  return index === -1 ? sorted.length : index;\n}\n" },
         time: "O(n)",
         space: "O(1)",
       },
@@ -874,6 +959,7 @@ const drafts: ProblemDraft[] = [
         approach: "Search for the largest m whose square doesn't exceed n.",
         js: "function integerSqrt(n) {\n  if (n < 2) return n;\n  let lo = 1, hi = n, res = 0;\n  while (lo <= hi) {\n    const mid = Math.floor((lo + hi) / 2);\n    if (mid * mid <= n) { res = mid; lo = mid + 1; }\n    else hi = mid - 1;\n  }\n  return res;\n}\n",
         ts: "function integerSqrt(n: number): number {\n  if (n < 2) return n;\n  let lo = 1, hi = n, res = 0;\n  while (lo <= hi) {\n    const mid = Math.floor((lo + hi) / 2);\n    if (mid * mid <= n) { res = mid; lo = mid + 1; }\n    else hi = mid - 1;\n  }\n  return res;\n}\n",
+        commentedCode: { js: "function integerSqrt(n) {\n  // Zero and one are their own integer square roots.\n  if (n < 2) return n;\n  // Track the largest candidate whose square fits within n.\n  let lo = 1, hi = n, result = 0;\n  while (lo <= hi) {\n    const mid = Math.floor((lo + hi) / 2);\n    if (mid * mid <= n) {\n      // mid fits, so save it and test larger candidates.\n      result = mid; lo = mid + 1;\n    } else hi = mid - 1;\n  }\n  return result;\n}\n", ts: "function integerSqrt(n: number): number {\n  // Zero and one are their own integer square roots.\n  if (n < 2) return n;\n  // Track the largest candidate whose square fits within n.\n  let lo = 1, hi = n, result = 0;\n  while (lo <= hi) {\n    const mid = Math.floor((lo + hi) / 2);\n    if (mid * mid <= n) {\n      // mid fits, so save it and test larger candidates.\n      result = mid; lo = mid + 1;\n    } else hi = mid - 1;\n  }\n  return result;\n}\n" },
         time: "O(log n)",
         space: "O(1)",
       },
@@ -882,6 +968,7 @@ const drafts: ProblemDraft[] = [
         approach: "Increase the root while its square still fits.",
         js: "function integerSqrt(n) {\n  let r = 0;\n  while ((r + 1) * (r + 1) <= n) r++;\n  return r;\n}\n",
         ts: "function integerSqrt(n: number): number {\n  let r = 0;\n  while ((r + 1) * (r + 1) <= n) r++;\n  return r;\n}\n",
+        commentedCode: { js: "function integerSqrt(n) {\n  // Increase the candidate while the next integer's square still fits.\n  let root = 0;\n  while ((root + 1) * (root + 1) <= n) root++;\n  // The next square is too large, so this is floor(sqrt(n)).\n  return root;\n}\n", ts: "function integerSqrt(n: number): number {\n  // Increase the candidate while the next integer's square still fits.\n  let root = 0;\n  while ((root + 1) * (root + 1) <= n) root++;\n  // The next square is too large, so this is floor(sqrt(n)).\n  return root;\n}\n" },
         time: "O(√n)",
         space: "O(1)",
       },
@@ -931,6 +1018,7 @@ const drafts: ProblemDraft[] = [
         approach: "Explore include/exclude choices, then canonicalise the order.",
         js: "function subsets(nums) {\n  const res = [];\n  const bt = (start, cur) => {\n    res.push([...cur]);\n    for (let i = start; i < nums.length; i++) { cur.push(nums[i]); bt(i + 1, cur); cur.pop(); }\n  };\n  bt(0, []);\n  const lex = (a, b) => { const m = Math.min(a.length, b.length); for (let i = 0; i < m; i++) if (a[i] !== b[i]) return a[i] - b[i]; return a.length - b.length; };\n  return res.sort((a, b) => a.length - b.length || lex(a, b));\n}\n",
         ts: "function subsets(nums: number[]): number[][] {\n  const res: number[][] = [];\n  const bt = (start: number, cur: number[]) => {\n    res.push([...cur]);\n    for (let i = start; i < nums.length; i++) { cur.push(nums[i]); bt(i + 1, cur); cur.pop(); }\n  };\n  bt(0, []);\n  const lex = (a, b) => { const m = Math.min(a.length, b.length); for (let i = 0; i < m; i++) if (a[i] !== b[i]) return a[i] - b[i]; return a.length - b.length; };\n  return res.sort((a, b) => a.length - b.length || lex(a, b));\n}\n",
+        commentedCode: { js: "function subsets(nums) {\n  const result = [];\n  const backtrack = (start, current) => {\n    // Every partial choice is itself one valid subset.\n    result.push([...current]);\n    for (let i = start; i < nums.length; i++) {\n      // Choose nums[i], then only consider later values next.\n      current.push(nums[i]);\n      backtrack(i + 1, current);\n      // Undo the choice before exploring the next sibling branch.\n      current.pop();\n    }\n  };\n  backtrack(0, []);\n  // Compare equal-sized subsets element by element.\n  const lex = (a, b) => { const length = Math.min(a.length, b.length); for (let i = 0; i < length; i++) if (a[i] !== b[i]) return a[i] - b[i]; return a.length - b.length; };\n  // Meet the required ordering: size first, then lexicographic value.\n  return result.sort((a, b) => a.length - b.length || lex(a, b));\n}\n", ts: "function subsets(nums: number[]): number[][] {\n  const result: number[][] = [];\n  const backtrack = (start: number, current: number[]) => {\n    // Every partial choice is itself one valid subset.\n    result.push([...current]);\n    for (let i = start; i < nums.length; i++) {\n      // Choose nums[i], then only consider later values next.\n      current.push(nums[i]);\n      backtrack(i + 1, current);\n      // Undo the choice before exploring the next sibling branch.\n      current.pop();\n    }\n  };\n  backtrack(0, []);\n  // Compare equal-sized subsets element by element.\n  const lex = (a: number[], b: number[]) => { const length = Math.min(a.length, b.length); for (let i = 0; i < length; i++) if (a[i] !== b[i]) return a[i] - b[i]; return a.length - b.length; };\n  // Meet the required ordering: size first, then lexicographic value.\n  return result.sort((a, b) => a.length - b.length || lex(a, b));\n}\n" },
         time: "O(n · 2ⁿ)",
         space: "O(n · 2ⁿ)",
       },
@@ -939,6 +1027,7 @@ const drafts: ProblemDraft[] = [
         approach: "Start with the empty set; for each value, add it to every existing subset.",
         js: "function subsets(nums) {\n  let res = [[]];\n  for (const x of nums) {\n    const more = res.map((s) => [...s, x]);\n    res = res.concat(more);\n  }\n  const lex = (a, b) => { const m = Math.min(a.length, b.length); for (let i = 0; i < m; i++) if (a[i] !== b[i]) return a[i] - b[i]; return a.length - b.length; };\n  return res.sort((a, b) => a.length - b.length || lex(a, b));\n}\n",
         ts: "function subsets(nums: number[]): number[][] {\n  let res: number[][] = [[]];\n  for (const x of nums) {\n    const more = res.map((s) => [...s, x]);\n    res = res.concat(more);\n  }\n  const lex = (a, b) => { const m = Math.min(a.length, b.length); for (let i = 0; i < m; i++) if (a[i] !== b[i]) return a[i] - b[i]; return a.length - b.length; };\n  return res.sort((a, b) => a.length - b.length || lex(a, b));\n}\n",
+        commentedCode: { js: "function subsets(nums) {\n  // Begin with the only subset of an empty prefix.\n  let result = [[]];\n  for (const value of nums) {\n    // Pair every existing subset with a copy that includes this value.\n    const withValue = result.map((subset) => [...subset, value]);\n    result = result.concat(withValue);\n  }\n  // Compare subset contents lexicographically when their sizes tie.\n  const lex = (a, b) => { const length = Math.min(a.length, b.length); for (let i = 0; i < length; i++) if (a[i] !== b[i]) return a[i] - b[i]; return a.length - b.length; };\n  return result.sort((a, b) => a.length - b.length || lex(a, b));\n}\n", ts: "function subsets(nums: number[]): number[][] {\n  // Begin with the only subset of an empty prefix.\n  let result: number[][] = [[]];\n  for (const value of nums) {\n    // Pair every existing subset with a copy that includes this value.\n    const withValue = result.map((subset) => [...subset, value]);\n    result = result.concat(withValue);\n  }\n  // Compare subset contents lexicographically when their sizes tie.\n  const lex = (a: number[], b: number[]) => { const length = Math.min(a.length, b.length); for (let i = 0; i < length; i++) if (a[i] !== b[i]) return a[i] - b[i]; return a.length - b.length; };\n  return result.sort((a, b) => a.length - b.length || lex(a, b));\n}\n" },
         time: "O(n · 2ⁿ)",
         space: "O(n · 2ⁿ)",
       },
@@ -986,6 +1075,7 @@ const drafts: ProblemDraft[] = [
         approach: "Place each unused value in turn, then canonicalise.",
         js: "function permutations(nums) {\n  const res = [];\n  const used = new Array(nums.length).fill(false);\n  const bt = (cur) => {\n    if (cur.length === nums.length) { res.push([...cur]); return; }\n    for (let i = 0; i < nums.length; i++) {\n      if (used[i]) continue;\n      used[i] = true; cur.push(nums[i]);\n      bt(cur);\n      cur.pop(); used[i] = false;\n    }\n  };\n  bt([]);\n  const lex = (a, b) => { for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] - b[i]; return 0; };\n  return res.sort(lex);\n}\n",
         ts: "function permutations(nums: number[]): number[][] {\n  const res: number[][] = [];\n  const used = new Array(nums.length).fill(false);\n  const bt = (cur: number[]) => {\n    if (cur.length === nums.length) { res.push([...cur]); return; }\n    for (let i = 0; i < nums.length; i++) {\n      if (used[i]) continue;\n      used[i] = true; cur.push(nums[i]);\n      bt(cur);\n      cur.pop(); used[i] = false;\n    }\n  };\n  bt([]);\n  const lex = (a, b) => { for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] - b[i]; return 0; };\n  return res.sort(lex);\n}\n",
+        commentedCode: { js: "function permutations(nums) {\n  const result = [];\n  // Track positions rather than values so each input position is used once.\n  const used = new Array(nums.length).fill(false);\n  const backtrack = (current) => {\n    // A full arrangement is one complete permutation.\n    if (current.length === nums.length) { result.push([...current]); return; }\n    for (let i = 0; i < nums.length; i++) {\n      if (used[i]) continue;\n      // Choose this unused value for the next position.\n      used[i] = true; current.push(nums[i]);\n      backtrack(current);\n      // Remove the choice so another value can occupy this position.\n      current.pop(); used[i] = false;\n    }\n  };\n  backtrack([]);\n  // Sort completed arrangements into the required lexicographic order.\n  const lex = (a, b) => { for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] - b[i]; return 0; };\n  return result.sort(lex);\n}\n", ts: "function permutations(nums: number[]): number[][] {\n  const result: number[][] = [];\n  // Track positions rather than values so each input position is used once.\n  const used = new Array(nums.length).fill(false);\n  const backtrack = (current: number[]) => {\n    // A full arrangement is one complete permutation.\n    if (current.length === nums.length) { result.push([...current]); return; }\n    for (let i = 0; i < nums.length; i++) {\n      if (used[i]) continue;\n      // Choose this unused value for the next position.\n      used[i] = true; current.push(nums[i]);\n      backtrack(current);\n      // Remove the choice so another value can occupy this position.\n      current.pop(); used[i] = false;\n    }\n  };\n  backtrack([]);\n  // Sort completed arrangements into the required lexicographic order.\n  const lex = (a: number[], b: number[]) => { for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] - b[i]; return 0; };\n  return result.sort(lex);\n}\n" },
         time: "O(n · n!)",
         space: "O(n · n!)",
       },
@@ -994,6 +1084,7 @@ const drafts: ProblemDraft[] = [
         approach: "Build permutations by inserting each value into every gap.",
         js: "function permutations(nums) {\n  let res = [[]];\n  for (const x of nums) {\n    const next = [];\n    for (const perm of res) {\n      for (let i = 0; i <= perm.length; i++) {\n        next.push([...perm.slice(0, i), x, ...perm.slice(i)]);\n      }\n    }\n    res = next;\n  }\n  const lex = (a, b) => { for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] - b[i]; return 0; };\n  return res.sort(lex);\n}\n",
         ts: "function permutations(nums: number[]): number[][] {\n  let res: number[][] = [[]];\n  for (const x of nums) {\n    const next: number[][] = [];\n    for (const perm of res) {\n      for (let i = 0; i <= perm.length; i++) {\n        next.push([...perm.slice(0, i), x, ...perm.slice(i)]);\n      }\n    }\n    res = next;\n  }\n  const lex = (a, b) => { for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] - b[i]; return 0; };\n  return res.sort(lex);\n}\n",
+        commentedCode: { js: "function permutations(nums) {\n  // The empty arrangement is the seed for incremental construction.\n  let result = [[]];\n  for (const value of nums) {\n    const next = [];\n    for (const permutation of result) {\n      // Insert value into every gap of each existing permutation.\n      for (let i = 0; i <= permutation.length; i++) {\n        next.push([...permutation.slice(0, i), value, ...permutation.slice(i)]);\n      }\n    }\n    result = next;\n  }\n  // Canonicalise the generated permutations lexicographically.\n  const lex = (a, b) => { for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] - b[i]; return 0; };\n  return result.sort(lex);\n}\n", ts: "function permutations(nums: number[]): number[][] {\n  // The empty arrangement is the seed for incremental construction.\n  let result: number[][] = [[]];\n  for (const value of nums) {\n    const next: number[][] = [];\n    for (const permutation of result) {\n      // Insert value into every gap of each existing permutation.\n      for (let i = 0; i <= permutation.length; i++) {\n        next.push([...permutation.slice(0, i), value, ...permutation.slice(i)]);\n      }\n    }\n    result = next;\n  }\n  // Canonicalise the generated permutations lexicographically.\n  const lex = (a: number[], b: number[]) => { for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] - b[i]; return 0; };\n  return result.sort(lex);\n}\n" },
         time: "O(n · n!)",
         space: "O(n · n!)",
       },
@@ -1041,6 +1132,7 @@ const drafts: ProblemDraft[] = [
         approach: "Pick ascending values from a moving start index.",
         js: "function combinations(n, k) {\n  const res = [];\n  const bt = (start, cur) => {\n    if (cur.length === k) { res.push([...cur]); return; }\n    for (let i = start; i <= n; i++) { cur.push(i); bt(i + 1, cur); cur.pop(); }\n  };\n  bt(1, []);\n  const lex = (a, b) => { for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] - b[i]; return 0; };\n  return res.sort(lex);\n}\n",
         ts: "function combinations(n: number, k: number): number[][] {\n  const res: number[][] = [];\n  const bt = (start: number, cur: number[]) => {\n    if (cur.length === k) { res.push([...cur]); return; }\n    for (let i = start; i <= n; i++) { cur.push(i); bt(i + 1, cur); cur.pop(); }\n  };\n  bt(1, []);\n  const lex = (a, b) => { for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] - b[i]; return 0; };\n  return res.sort(lex);\n}\n",
+        commentedCode: { js: "function combinations(n, k) {\n  const result = [];\n  const backtrack = (start, current) => {\n    // Record a combination as soon as it contains exactly k values.\n    if (current.length === k) { result.push([...current]); return; }\n    for (let value = start; value <= n; value++) {\n      // Choosing only larger values next prevents repeats and reordering.\n      current.push(value);\n      backtrack(value + 1, current);\n      current.pop();\n    }\n  };\n  backtrack(1, []);\n  // Sort element by element to guarantee the requested order.\n  const lex = (a, b) => { for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] - b[i]; return 0; };\n  return result.sort(lex);\n}\n", ts: "function combinations(n: number, k: number): number[][] {\n  const result: number[][] = [];\n  const backtrack = (start: number, current: number[]) => {\n    // Record a combination as soon as it contains exactly k values.\n    if (current.length === k) { result.push([...current]); return; }\n    for (let value = start; value <= n; value++) {\n      // Choosing only larger values next prevents repeats and reordering.\n      current.push(value);\n      backtrack(value + 1, current);\n      current.pop();\n    }\n  };\n  backtrack(1, []);\n  // Sort element by element to guarantee the requested order.\n  const lex = (a: number[], b: number[]) => { for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] - b[i]; return 0; };\n  return result.sort(lex);\n}\n" },
         time: "O(k · C(n,k))",
         space: "O(k · C(n,k))",
       },
@@ -1049,6 +1141,7 @@ const drafts: ProblemDraft[] = [
         approach: "Enumerate subsets of the right size (fine for small n).",
         js: "function combinations(n, k) {\n  let res = [[]];\n  for (let x = 1; x <= n; x++) res = res.concat(res.map((s) => [...s, x]));\n  const out = res.filter((s) => s.length === k);\n  const lex = (a, b) => { for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] - b[i]; return 0; };\n  return out.sort(lex);\n}\n",
         ts: "function combinations(n: number, k: number): number[][] {\n  let res: number[][] = [[]];\n  for (let x = 1; x <= n; x++) res = res.concat(res.map((s) => [...s, x]));\n  const out = res.filter((s) => s.length === k);\n  const lex = (a, b) => { for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] - b[i]; return 0; };\n  return out.sort(lex);\n}\n",
+        commentedCode: { js: "function combinations(n, k) {\n  // Begin with the empty subset of the values considered so far.\n  let subsets = [[]];\n  for (let value = 1; value <= n; value++) {\n    // Duplicate every subset and append the new value to each duplicate.\n    subsets = subsets.concat(subsets.map((subset) => [...subset, value]));\n  }\n  // Only subsets containing exactly k values are combinations we need.\n  const result = subsets.filter((subset) => subset.length === k);\n  const lex = (a, b) => { for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] - b[i]; return 0; };\n  return result.sort(lex);\n}\n", ts: "function combinations(n: number, k: number): number[][] {\n  // Begin with the empty subset of the values considered so far.\n  let subsets: number[][] = [[]];\n  for (let value = 1; value <= n; value++) {\n    // Duplicate every subset and append the new value to each duplicate.\n    subsets = subsets.concat(subsets.map((subset) => [...subset, value]));\n  }\n  // Only subsets containing exactly k values are combinations we need.\n  const result = subsets.filter((subset) => subset.length === k);\n  const lex = (a: number[], b: number[]) => { for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] - b[i]; return 0; };\n  return result.sort(lex);\n}\n" },
         time: "O(2ⁿ)",
         space: "O(2ⁿ)",
       },
@@ -1096,6 +1189,7 @@ const drafts: ProblemDraft[] = [
         approach: "Explore include/skip for each element and tally hits.",
         js: "function countSubsetsWithSum(nums, target) {\n  let count = 0;\n  const bt = (i, sum) => {\n    if (i === nums.length) { if (sum === target) count++; return; }\n    bt(i + 1, sum);\n    bt(i + 1, sum + nums[i]);\n  };\n  bt(0, 0);\n  return count;\n}\n",
         ts: "function countSubsetsWithSum(nums: number[], target: number): number {\n  let count = 0;\n  const bt = (i: number, sum: number) => {\n    if (i === nums.length) { if (sum === target) count++; return; }\n    bt(i + 1, sum);\n    bt(i + 1, sum + nums[i]);\n  };\n  bt(0, 0);\n  return count;\n}\n",
+        commentedCode: { js: "function countSubsetsWithSum(nums, target) {\n  let count = 0;\n  const backtrack = (index, sum) => {\n    if (index === nums.length) {\n      // A leaf represents one unique subset of input positions.\n      if (sum === target) count++;\n      return;\n    }\n    // Explore the branch that skips this value.\n    backtrack(index + 1, sum);\n    // Explore the branch that includes this value.\n    backtrack(index + 1, sum + nums[index]);\n  };\n  backtrack(0, 0);\n  return count;\n}\n", ts: "function countSubsetsWithSum(nums: number[], target: number): number {\n  let count = 0;\n  const backtrack = (index: number, sum: number) => {\n    if (index === nums.length) {\n      // A leaf represents one unique subset of input positions.\n      if (sum === target) count++;\n      return;\n    }\n    // Explore the branch that skips this value.\n    backtrack(index + 1, sum);\n    // Explore the branch that includes this value.\n    backtrack(index + 1, sum + nums[index]);\n  };\n  backtrack(0, 0);\n  return count;\n}\n" },
         time: "O(2ⁿ)",
         space: "O(n)",
       },
@@ -1104,6 +1198,7 @@ const drafts: ProblemDraft[] = [
         approach: "Grow the multiset of achievable sums, counting matches at the end.",
         js: "function countSubsetsWithSum(nums, target) {\n  let sums = [0];\n  for (const x of nums) sums = sums.concat(sums.map((s) => s + x));\n  return sums.filter((s) => s === target).length;\n}\n",
         ts: "function countSubsetsWithSum(nums: number[], target: number): number {\n  let sums = [0];\n  for (const x of nums) sums = sums.concat(sums.map((s) => s + x));\n  return sums.filter((s) => s === target).length;\n}\n",
+        commentedCode: { js: "function countSubsetsWithSum(nums, target) {\n  // Zero is the sum produced by the empty subset.\n  let sums = [0];\n  for (const value of nums) {\n    // Keep sums that skip value and add matching sums that include it.\n    sums = sums.concat(sums.map((sum) => sum + value));\n  }\n  // Each occurrence corresponds to one subset of input positions.\n  return sums.filter((sum) => sum === target).length;\n}\n", ts: "function countSubsetsWithSum(nums: number[], target: number): number {\n  // Zero is the sum produced by the empty subset.\n  let sums = [0];\n  for (const value of nums) {\n    // Keep sums that skip value and add matching sums that include it.\n    sums = sums.concat(sums.map((sum) => sum + value));\n  }\n  // Each occurrence corresponds to one subset of input positions.\n  return sums.filter((sum) => sum === target).length;\n}\n" },
         time: "O(2ⁿ)",
         space: "O(2ⁿ)",
       },

@@ -40,12 +40,34 @@ const drafts: ProblemDraft[] = [
       "Start a running total at 0 and add each value from 1 to n.",
       "let total = 0; for (let i = 1; i <= n; i++) total += i; return total.",
     ],
+    walkthrough: [
+      {
+        title: "Choose the direct process",
+        body: "The task asks for every integer from **1 through n**, so a forward loop naturally visits exactly the values that belong in the sum.",
+      },
+      {
+        title: "Store the running answer",
+        body: "Start a variable at **0**, the additive identity. Each loop iteration adds the current number to that variable, so it always represents the sum of the numbers processed so far.",
+      },
+      {
+        title: "Set the loop boundary carefully",
+        body: "The answer includes `n`, so the loop must continue while the counter is **less than or equal to n**. Starting at 1 also makes `n = 0` work without a special case because the loop never runs.",
+      },
+      {
+        title: "Return the accumulated value",
+        body: "After the loop, every required number has been added once. Return the running total; there is no extra collection to build.",
+      },
+    ],
     solutions: [
       {
         label: "Loop",
         approach: "Accumulate each value from 1 to n.",
         js: "function sumTo(n) {\n  let total = 0;\n  for (let i = 1; i <= n; i++) total += i;\n  return total;\n}\n",
         ts: "function sumTo(n: number): number {\n  let total = 0;\n  for (let i = 1; i <= n; i++) total += i;\n  return total;\n}\n",
+        commentedCode: {
+          js: "function sumTo(n) {\n  // Hold the sum of all numbers processed so far.\n  let total = 0;\n\n  // Visit every integer that belongs in the requested range, including n.\n  for (let i = 1; i <= n; i++) {\n    // Add this integer before moving to the next one.\n    total += i;\n  }\n\n  // The loop has included every value from 1 through n.\n  return total;\n}\n",
+          ts: "function sumTo(n: number): number {\n  // Hold the sum of all numbers processed so far.\n  let total = 0;\n\n  // Visit every integer that belongs in the requested range, including n.\n  for (let i = 1; i <= n; i++) {\n    // Add this integer before moving to the next one.\n    total += i;\n  }\n\n  // The loop has included every value from 1 through n.\n  return total;\n}\n",
+        },
         time: "O(n)",
         space: "O(1)",
       },
@@ -54,6 +76,10 @@ const drafts: ProblemDraft[] = [
         approach: "Gauss's formula computes the same sum in constant time.",
         js: "function sumTo(n) {\n  return (n * (n + 1)) / 2;\n}\n",
         ts: "function sumTo(n: number): number {\n  return (n * (n + 1)) / 2;\n}\n",
+        commentedCode: {
+          js: "function sumTo(n) {\n  // Pairing the first and last values gives the closed-form sum 1 + ... + n.\n  return (n * (n + 1)) / 2;\n}\n",
+          ts: "function sumTo(n: number): number {\n  // Pairing the first and last values gives the closed-form sum 1 + ... + n.\n  return (n * (n + 1)) / 2;\n}\n",
+        },
         time: "O(1)",
         space: "O(1)",
       },
@@ -95,12 +121,34 @@ const drafts: ProblemDraft[] = [
       "Keep a set of vowels and check membership as you scan each character.",
       'const vowels = new Set("aeiou"); count each ch where vowels.has(ch.toLowerCase()).',
     ],
+    walkthrough: [
+      {
+        title: "Normalize before comparing",
+        body: "Uppercase and lowercase vowels should count the same. Convert each character to lowercase at the moment you inspect it, rather than storing two versions of every vowel.",
+      },
+      {
+        title: "Make the vowel check explicit",
+        body: "Keep the five lowercase vowels in a set. A set expresses the question we need to ask at every character: **is this character one of the allowed values?**",
+      },
+      {
+        title: "Scan once and count matches",
+        body: "Initialize a counter to 0, then visit each character in the word. Increase the counter only when its normalized form is in the set.",
+      },
+      {
+        title: "Return zero naturally for no matches",
+        body: "An empty word or a word with no vowels never changes the counter, so returning it covers both cases without branching.",
+      },
+    ],
     solutions: [
       {
         label: "Scan with a set",
         approach: "Walk each character and test lowercase membership in a vowel set.",
         js: 'function countVowels(word) {\n  const vowels = new Set(["a", "e", "i", "o", "u"]);\n  let count = 0;\n  for (const ch of word) {\n    if (vowels.has(ch.toLowerCase())) count++;\n  }\n  return count;\n}\n',
         ts: 'function countVowels(word: string): number {\n  const vowels = new Set(["a", "e", "i", "o", "u"]);\n  let count = 0;\n  for (const ch of word) {\n    if (vowels.has(ch.toLowerCase())) count++;\n  }\n  return count;\n}\n',
+        commentedCode: {
+          js: 'function countVowels(word) {\n  // Store the only lowercase characters that count as vowels.\n  const vowels = new Set(["a", "e", "i", "o", "u"]);\n  // Start with no vowel matches.\n  let count = 0;\n\n  // Inspect every character in the input word once.\n  for (const ch of word) {\n    // Normalize case, then count this character only if it is a vowel.\n    if (vowels.has(ch.toLowerCase())) {\n      count++;\n    }\n  }\n\n  // Return the number of matching characters found.\n  return count;\n}\n',
+          ts: 'function countVowels(word: string): number {\n  // Store the only lowercase characters that count as vowels.\n  const vowels = new Set(["a", "e", "i", "o", "u"]);\n  // Start with no vowel matches.\n  let count = 0;\n\n  // Inspect every character in the input word once.\n  for (const ch of word) {\n    // Normalize case, then count this character only if it is a vowel.\n    if (vowels.has(ch.toLowerCase())) {\n      count++;\n    }\n  }\n\n  // Return the number of matching characters found.\n  return count;\n}\n',
+        },
         time: "O(n)",
         space: "O(1)",
       },
@@ -109,6 +157,10 @@ const drafts: ProblemDraft[] = [
         approach: "Let a global, case-insensitive match do the counting.",
         js: "function countVowels(word) {\n  const matches = word.match(/[aeiou]/gi);\n  return matches ? matches.length : 0;\n}\n",
         ts: "function countVowels(word: string): number {\n  const matches = word.match(/[aeiou]/gi);\n  return matches ? matches.length : 0;\n}\n",
+        commentedCode: {
+          js: "function countVowels(word) {\n  // Find every vowel, ignoring case; match returns null when there are none.\n  const matches = word.match(/[aeiou]/gi);\n  // Return the match count, or zero for the no-match case.\n  return matches ? matches.length : 0;\n}\n",
+          ts: "function countVowels(word: string): number {\n  // Find every vowel, ignoring case; match returns null when there are none.\n  const matches = word.match(/[aeiou]/gi);\n  // Return the match count, or zero for the no-match case.\n  return matches ? matches.length : 0;\n}\n",
+        },
         time: "O(n)",
         space: "O(n)",
       },
@@ -150,12 +202,34 @@ const drafts: ProblemDraft[] = [
       "Keep a set of values seen so far; the first value already in the set is your answer.",
       "const seen = new Set(); for v of values: if seen.has(v) return v; seen.add(v); return -1.",
     ],
+    walkthrough: [
+      {
+        title: "Preserve the input order",
+        body: "“First” refers to the earliest position that repeats something already seen. Scan from left to right so the first repeat you discover is automatically the correct answer.",
+      },
+      {
+        title: "Remember earlier values",
+        body: "Use a set to represent the values from positions before the current one. Its membership check is constant time on average, which avoids repeatedly scanning the earlier part of the array.",
+      },
+      {
+        title: "Check before inserting",
+        body: "For each value, first ask whether it is already in the set. If it is, return it immediately. Only unseen values should be added; reversing that order would make every value look like a duplicate of itself.",
+      },
+      {
+        title: "Handle the no-repeat case",
+        body: "If the scan finishes without returning, no value occurred twice in the required order. Return the sentinel value `-1`.",
+      },
+    ],
     solutions: [
       {
         label: "Brute force",
         approach: "For each element, look back at everything before it.",
         js: "function firstDuplicate(values) {\n  for (let i = 0; i < values.length; i++) {\n    for (let j = 0; j < i; j++) {\n      if (values[j] === values[i]) return values[i];\n    }\n  }\n  return -1;\n}\n",
         ts: "function firstDuplicate(values: number[]): number {\n  for (let i = 0; i < values.length; i++) {\n    for (let j = 0; j < i; j++) {\n      if (values[j] === values[i]) return values[i];\n    }\n  }\n  return -1;\n}\n",
+        commentedCode: {
+          js: "function firstDuplicate(values) {\n  // Choose each position as the candidate repeat, in input order.\n  for (let i = 0; i < values.length; i++) {\n    // Compare the candidate with every earlier position only.\n    for (let j = 0; j < i; j++) {\n      // A match means this is the first position whose value has appeared before.\n      if (values[j] === values[i]) {\n        return values[i];\n      }\n    }\n  }\n\n  // No position matched a value that came before it.\n  return -1;\n}\n",
+          ts: "function firstDuplicate(values: number[]): number {\n  // Choose each position as the candidate repeat, in input order.\n  for (let i = 0; i < values.length; i++) {\n    // Compare the candidate with every earlier position only.\n    for (let j = 0; j < i; j++) {\n      // A match means this is the first position whose value has appeared before.\n      if (values[j] === values[i]) {\n        return values[i];\n      }\n    }\n  }\n\n  // No position matched a value that came before it.\n  return -1;\n}\n",
+        },
         time: "O(n²)",
         space: "O(1)",
       },
@@ -164,6 +238,10 @@ const drafts: ProblemDraft[] = [
         approach: "Track everything seen so far in a hash set for O(1) lookups.",
         js: "function firstDuplicate(values) {\n  const seen = new Set();\n  for (const v of values) {\n    if (seen.has(v)) return v;\n    seen.add(v);\n  }\n  return -1;\n}\n",
         ts: "function firstDuplicate(values: number[]): number {\n  const seen = new Set<number>();\n  for (const v of values) {\n    if (seen.has(v)) return v;\n    seen.add(v);\n  }\n  return -1;\n}\n",
+        commentedCode: {
+          js: "function firstDuplicate(values) {\n  // Track exactly the values that appeared before the current position.\n  const seen = new Set();\n\n  // Reading left to right preserves the problem's definition of first.\n  for (const v of values) {\n    // Check before adding so an unseen value does not match itself.\n    if (seen.has(v)) {\n      return v;\n    }\n    // Make this value available to later positions as an earlier value.\n    seen.add(v);\n  }\n\n  // The scan found no repeated value.\n  return -1;\n}\n",
+          ts: "function firstDuplicate(values: number[]): number {\n  // Track exactly the values that appeared before the current position.\n  const seen = new Set<number>();\n\n  // Reading left to right preserves the problem's definition of first.\n  for (const v of values) {\n    // Check before adding so an unseen value does not match itself.\n    if (seen.has(v)) {\n      return v;\n    }\n    // Make this value available to later positions as an earlier value.\n    seen.add(v);\n  }\n\n  // The scan found no repeated value.\n  return -1;\n}\n",
+        },
         time: "O(n)",
         space: "O(n)",
       },
@@ -212,6 +290,10 @@ const drafts: ProblemDraft[] = [
         approach: "Check every unordered pair for equality.",
         js: "function hasDuplicate(values) {\n  for (let i = 0; i < values.length; i++) {\n    for (let j = i + 1; j < values.length; j++) {\n      if (values[i] === values[j]) return true;\n    }\n  }\n  return false;\n}\n",
         ts: "function hasDuplicate(values: number[]): boolean {\n  for (let i = 0; i < values.length; i++) {\n    for (let j = i + 1; j < values.length; j++) {\n      if (values[i] === values[j]) return true;\n    }\n  }\n  return false;\n}\n",
+        commentedCode: {
+          js: "function hasDuplicate(values) {\n  // Choose each value as the first member of a possible duplicate pair.\n  for (let i = 0; i < values.length; i++) {\n    // Compare only with later positions so every pair is checked once.\n    for (let j = i + 1; j < values.length; j++) {\n      // Equal values at different positions prove a duplicate exists.\n      if (values[i] === values[j]) {\n        return true;\n      }\n    }\n  }\n\n  // No pair contained equal values.\n  return false;\n}\n",
+          ts: "function hasDuplicate(values: number[]): boolean {\n  // Choose each value as the first member of a possible duplicate pair.\n  for (let i = 0; i < values.length; i++) {\n    // Compare only with later positions so every pair is checked once.\n    for (let j = i + 1; j < values.length; j++) {\n      // Equal values at different positions prove a duplicate exists.\n      if (values[i] === values[j]) {\n        return true;\n      }\n    }\n  }\n\n  // No pair contained equal values.\n  return false;\n}\n",
+        },
         time: "O(n²)",
         space: "O(1)",
       },
@@ -220,6 +302,10 @@ const drafts: ProblemDraft[] = [
         approach: "A single pass with a set of seen values.",
         js: "function hasDuplicate(values) {\n  const seen = new Set();\n  for (const v of values) {\n    if (seen.has(v)) return true;\n    seen.add(v);\n  }\n  return false;\n}\n",
         ts: "function hasDuplicate(values: number[]): boolean {\n  const seen = new Set<number>();\n  for (const v of values) {\n    if (seen.has(v)) return true;\n    seen.add(v);\n  }\n  return false;\n}\n",
+        commentedCode: {
+          js: "function hasDuplicate(values) {\n  // Remember every value from the positions already processed.\n  const seen = new Set();\n\n  // Scan in input order, checking each value once.\n  for (const v of values) {\n    // A value already in the set has appeared at an earlier position.\n    if (seen.has(v)) {\n      return true;\n    }\n    // Make this value available when checking later positions.\n    seen.add(v);\n  }\n\n  // Every value was new when encountered.\n  return false;\n}\n",
+          ts: "function hasDuplicate(values: number[]): boolean {\n  // Remember every value from the positions already processed.\n  const seen = new Set<number>();\n\n  // Scan in input order, checking each value once.\n  for (const v of values) {\n    // A value already in the set has appeared at an earlier position.\n    if (seen.has(v)) {\n      return true;\n    }\n    // Make this value available when checking later positions.\n    seen.add(v);\n  }\n\n  // Every value was new when encountered.\n  return false;\n}\n",
+        },
         time: "O(n)",
         space: "O(n)",
       },
@@ -267,6 +353,10 @@ const drafts: ProblemDraft[] = [
         approach: "Try every pair of positions.",
         js: "function twoSumExists(values, target) {\n  for (let i = 0; i < values.length; i++) {\n    for (let j = i + 1; j < values.length; j++) {\n      if (values[i] + values[j] === target) return true;\n    }\n  }\n  return false;\n}\n",
         ts: "function twoSumExists(values: number[], target: number): boolean {\n  for (let i = 0; i < values.length; i++) {\n    for (let j = i + 1; j < values.length; j++) {\n      if (values[i] + values[j] === target) return true;\n    }\n  }\n  return false;\n}\n",
+        commentedCode: {
+          js: "function twoSumExists(values, target) {\n  // Select the first position in each possible pair.\n  for (let i = 0; i < values.length; i++) {\n    // Start after i so the pair always uses two different positions.\n    for (let j = i + 1; j < values.length; j++) {\n      // Stop as soon as one pair produces the requested sum.\n      if (values[i] + values[j] === target) {\n        return true;\n      }\n    }\n  }\n\n  // Every distinct pair was tested without a match.\n  return false;\n}\n",
+          ts: "function twoSumExists(values: number[], target: number): boolean {\n  // Select the first position in each possible pair.\n  for (let i = 0; i < values.length; i++) {\n    // Start after i so the pair always uses two different positions.\n    for (let j = i + 1; j < values.length; j++) {\n      // Stop as soon as one pair produces the requested sum.\n      if (values[i] + values[j] === target) {\n        return true;\n      }\n    }\n  }\n\n  // Every distinct pair was tested without a match.\n  return false;\n}\n",
+        },
         time: "O(n²)",
         space: "O(1)",
       },
@@ -275,6 +365,10 @@ const drafts: ProblemDraft[] = [
         approach: "Remember seen values; check for the needed complement in O(1).",
         js: "function twoSumExists(values, target) {\n  const seen = new Set();\n  for (const v of values) {\n    if (seen.has(target - v)) return true;\n    seen.add(v);\n  }\n  return false;\n}\n",
         ts: "function twoSumExists(values: number[], target: number): boolean {\n  const seen = new Set<number>();\n  for (const v of values) {\n    if (seen.has(target - v)) return true;\n    seen.add(v);\n  }\n  return false;\n}\n",
+        commentedCode: {
+          js: "function twoSumExists(values, target) {\n  // Store values from positions before the current one.\n  const seen = new Set();\n\n  // Treat each value as the second member of a possible pair.\n  for (const v of values) {\n    // The required partner is whatever remains after subtracting v.\n    if (seen.has(target - v)) {\n      return true;\n    }\n    // Add v only after checking, so one position cannot pair with itself.\n    seen.add(v);\n  }\n\n  // No value had its required complement at an earlier position.\n  return false;\n}\n",
+          ts: "function twoSumExists(values: number[], target: number): boolean {\n  // Store values from positions before the current one.\n  const seen = new Set<number>();\n\n  // Treat each value as the second member of a possible pair.\n  for (const v of values) {\n    // The required partner is whatever remains after subtracting v.\n    if (seen.has(target - v)) {\n      return true;\n    }\n    // Add v only after checking, so one position cannot pair with itself.\n    seen.add(v);\n  }\n\n  // No value had its required complement at an earlier position.\n  return false;\n}\n",
+        },
         time: "O(n)",
         space: "O(n)",
       },
@@ -322,6 +416,10 @@ const drafts: ProblemDraft[] = [
         approach: "Tally with a Map, then pick the winner applying the tie-break.",
         js: "function mostFrequent(values) {\n  const counts = new Map();\n  for (const v of values) counts.set(v, (counts.get(v) || 0) + 1);\n  let best = values[0];\n  let bestCount = 0;\n  for (const [v, c] of counts) {\n    if (c > bestCount || (c === bestCount && v < best)) {\n      best = v;\n      bestCount = c;\n    }\n  }\n  return best;\n}\n",
         ts: "function mostFrequent(values: number[]): number {\n  const counts = new Map<number, number>();\n  for (const v of values) counts.set(v, (counts.get(v) || 0) + 1);\n  let best = values[0];\n  let bestCount = 0;\n  for (const [v, c] of counts) {\n    if (c > bestCount || (c === bestCount && v < best)) {\n      best = v;\n      bestCount = c;\n    }\n  }\n  return best;\n}\n",
+        commentedCode: {
+          js: "function mostFrequent(values) {\n  // Count how many times each distinct value occurs.\n  const counts = new Map();\n  for (const v of values) {\n    counts.set(v, (counts.get(v) || 0) + 1);\n  }\n\n  // Seed the winner with a valid input value.\n  let best = values[0];\n  let bestCount = 0;\n\n  // Compare every distinct value with the current winner.\n  for (const [v, c] of counts) {\n    // Prefer a larger count, or the smaller value when counts tie.\n    if (c > bestCount || (c === bestCount && v < best)) {\n      best = v;\n      bestCount = c;\n    }\n  }\n\n  return best;\n}\n",
+          ts: "function mostFrequent(values: number[]): number {\n  // Count how many times each distinct value occurs.\n  const counts = new Map<number, number>();\n  for (const v of values) {\n    counts.set(v, (counts.get(v) || 0) + 1);\n  }\n\n  // Seed the winner with a valid input value.\n  let best = values[0];\n  let bestCount = 0;\n\n  // Compare every distinct value with the current winner.\n  for (const [v, c] of counts) {\n    // Prefer a larger count, or the smaller value when counts tie.\n    if (c > bestCount || (c === bestCount && v < best)) {\n      best = v;\n      bestCount = c;\n    }\n  }\n\n  return best;\n}\n",
+        },
         time: "O(n)",
         space: "O(n)",
       },
@@ -330,6 +428,10 @@ const drafts: ProblemDraft[] = [
         approach: "Sorting groups equal values; the smallest of a tie is met first.",
         js: "function mostFrequent(values) {\n  const sorted = [...values].sort((a, b) => a - b);\n  let best = sorted[0];\n  let bestCount = 0;\n  let cur = sorted[0];\n  let curCount = 0;\n  for (const v of sorted) {\n    if (v === cur) curCount++;\n    else {\n      cur = v;\n      curCount = 1;\n    }\n    if (curCount > bestCount) {\n      bestCount = curCount;\n      best = cur;\n    }\n  }\n  return best;\n}\n",
         ts: "function mostFrequent(values: number[]): number {\n  const sorted = [...values].sort((a, b) => a - b);\n  let best = sorted[0];\n  let bestCount = 0;\n  let cur = sorted[0];\n  let curCount = 0;\n  for (const v of sorted) {\n    if (v === cur) curCount++;\n    else {\n      cur = v;\n      curCount = 1;\n    }\n    if (curCount > bestCount) {\n      bestCount = curCount;\n      best = cur;\n    }\n  }\n  return best;\n}\n",
+        commentedCode: {
+          js: "function mostFrequent(values) {\n  // Sort a copy so equal values form consecutive runs without mutating the input.\n  const sorted = [...values].sort((a, b) => a - b);\n  let best = sorted[0];\n  let bestCount = 0;\n  let cur = sorted[0];\n  let curCount = 0;\n\n  // Measure each run of equal values.\n  for (const v of sorted) {\n    if (v === cur) {\n      curCount++;\n    } else {\n      // A new value begins a new run of length one.\n      cur = v;\n      curCount = 1;\n    }\n\n    // Update only for a strictly longer run; sorting leaves the smaller tie winner first.\n    if (curCount > bestCount) {\n      bestCount = curCount;\n      best = cur;\n    }\n  }\n\n  return best;\n}\n",
+          ts: "function mostFrequent(values: number[]): number {\n  // Sort a copy so equal values form consecutive runs without mutating the input.\n  const sorted = [...values].sort((a, b) => a - b);\n  let best = sorted[0];\n  let bestCount = 0;\n  let cur = sorted[0];\n  let curCount = 0;\n\n  // Measure each run of equal values.\n  for (const v of sorted) {\n    if (v === cur) {\n      curCount++;\n    } else {\n      // A new value begins a new run of length one.\n      cur = v;\n      curCount = 1;\n    }\n\n    // Update only for a strictly longer run; sorting leaves the smaller tie winner first.\n    if (curCount > bestCount) {\n      bestCount = curCount;\n      best = cur;\n    }\n  }\n\n  return best;\n}\n",
+        },
         time: "O(n log n)",
         space: "O(n)",
       },
@@ -378,6 +480,10 @@ const drafts: ProblemDraft[] = [
         approach: "Use built-in array methods.",
         js: "function reverseString(text) {\n  return text.split('').reverse().join('');\n}\n",
         ts: "function reverseString(text: string): string {\n  return text.split('').reverse().join('');\n}\n",
+        commentedCode: {
+          js: "function reverseString(text) {\n  // Convert the immutable string to characters, reverse their order, and join them back.\n  return text.split('').reverse().join('');\n}\n",
+          ts: "function reverseString(text: string): string {\n  // Convert the immutable string to characters, reverse their order, and join them back.\n  return text.split('').reverse().join('');\n}\n",
+        },
         time: "O(n)",
         space: "O(n)",
       },
@@ -386,6 +492,10 @@ const drafts: ProblemDraft[] = [
         approach: "Prepend each character to an accumulator.",
         js: "function reverseString(text) {\n  let out = '';\n  for (const ch of text) out = ch + out;\n  return out;\n}\n",
         ts: "function reverseString(text: string): string {\n  let out = '';\n  for (const ch of text) out = ch + out;\n  return out;\n}\n",
+        commentedCode: {
+          js: "function reverseString(text) {\n  // Build the reversed result from an empty string.\n  let out = '';\n\n  // Prepending each next character places later input characters first.\n  for (const ch of text) {\n    out = ch + out;\n  }\n\n  return out;\n}\n",
+          ts: "function reverseString(text: string): string {\n  // Build the reversed result from an empty string.\n  let out = '';\n\n  // Prepending each next character places later input characters first.\n  for (const ch of text) {\n    out = ch + out;\n  }\n\n  return out;\n}\n",
+        },
         time: "O(n)",
         space: "O(n)",
       },
@@ -433,6 +543,10 @@ const drafts: ProblemDraft[] = [
         approach: "Advance the start index by `size` and slice each window.",
         js: "function chunk(values, size) {\n  const out = [];\n  for (let i = 0; i < values.length; i += size) {\n    out.push(values.slice(i, i + size));\n  }\n  return out;\n}\n",
         ts: "function chunk(values: number[], size: number): number[][] {\n  const out: number[][] = [];\n  for (let i = 0; i < values.length; i += size) {\n    out.push(values.slice(i, i + size));\n  }\n  return out;\n}\n",
+        commentedCode: {
+          js: "function chunk(values, size) {\n  // Collect each consecutive chunk in output order.\n  const out = [];\n\n  // Jump directly to the starting index of each chunk.\n  for (let i = 0; i < values.length; i += size) {\n    // Slice stops at the array boundary, so the final chunk may be shorter.\n    out.push(values.slice(i, i + size));\n  }\n\n  return out;\n}\n",
+          ts: "function chunk(values: number[], size: number): number[][] {\n  // Collect each consecutive chunk in output order.\n  const out: number[][] = [];\n\n  // Jump directly to the starting index of each chunk.\n  for (let i = 0; i < values.length; i += size) {\n    // Slice stops at the array boundary, so the final chunk may be shorter.\n    out.push(values.slice(i, i + size));\n  }\n\n  return out;\n}\n",
+        },
         time: "O(n)",
         space: "O(n)",
       },
@@ -441,6 +555,10 @@ const drafts: ProblemDraft[] = [
         approach: "Start a new group whenever the current one is full.",
         js: "function chunk(values, size) {\n  const out = [];\n  for (const v of values) {\n    const last = out[out.length - 1];\n    if (!last || last.length === size) out.push([v]);\n    else last.push(v);\n  }\n  return out;\n}\n",
         ts: "function chunk(values: number[], size: number): number[][] {\n  const out: number[][] = [];\n  for (const v of values) {\n    const last = out[out.length - 1];\n    if (!last || last.length === size) out.push([v]);\n    else last.push(v);\n  }\n  return out;\n}\n",
+        commentedCode: {
+          js: "function chunk(values, size) {\n  // Build chunks incrementally while preserving input order.\n  const out = [];\n\n  for (const v of values) {\n    // Read the current final chunk, if one exists.\n    const last = out[out.length - 1];\n\n    if (!last || last.length === size) {\n      // Start a new chunk when there is none or the last one is full.\n      out.push([v]);\n    } else {\n      // Otherwise append to the chunk that still has room.\n      last.push(v);\n    }\n  }\n\n  return out;\n}\n",
+          ts: "function chunk(values: number[], size: number): number[][] {\n  // Build chunks incrementally while preserving input order.\n  const out: number[][] = [];\n\n  for (const v of values) {\n    // Read the current final chunk, if one exists.\n    const last = out[out.length - 1];\n\n    if (!last || last.length === size) {\n      // Start a new chunk when there is none or the last one is full.\n      out.push([v]);\n    } else {\n      // Otherwise append to the chunk that still has room.\n      last.push(v);\n    }\n  }\n\n  return out;\n}\n",
+        },
         time: "O(n)",
         space: "O(n)",
       },
@@ -488,6 +606,10 @@ const drafts: ProblemDraft[] = [
         approach: "Push each value into the even or odd list.",
         js: "function groupByParity(nums) {\n  const even = [];\n  const odd = [];\n  for (const n of nums) {\n    if (n % 2 === 0) even.push(n);\n    else odd.push(n);\n  }\n  return { even, odd };\n}\n",
         ts: "function groupByParity(nums: number[]): { even: number[]; odd: number[] } {\n  const even: number[] = [];\n  const odd: number[] = [];\n  for (const n of nums) {\n    if (n % 2 === 0) even.push(n);\n    else odd.push(n);\n  }\n  return { even, odd };\n}\n",
+        commentedCode: {
+          js: "function groupByParity(nums) {\n  // Keep separate output buckets for the two possible parities.\n  const even = [];\n  const odd = [];\n\n  // Process values left to right to preserve their order within each bucket.\n  for (const n of nums) {\n    // A zero remainder after division by two identifies an even number.\n    if (n % 2 === 0) {\n      even.push(n);\n    } else {\n      odd.push(n);\n    }\n  }\n\n  return { even, odd };\n}\n",
+          ts: "function groupByParity(nums: number[]): { even: number[]; odd: number[] } {\n  // Keep separate output buckets for the two possible parities.\n  const even: number[] = [];\n  const odd: number[] = [];\n\n  // Process values left to right to preserve their order within each bucket.\n  for (const n of nums) {\n    // A zero remainder after division by two identifies an even number.\n    if (n % 2 === 0) {\n      even.push(n);\n    } else {\n      odd.push(n);\n    }\n  }\n\n  return { even, odd };\n}\n",
+        },
         time: "O(n)",
         space: "O(n)",
       },
@@ -496,6 +618,10 @@ const drafts: ProblemDraft[] = [
         approach: "Two filters read clearly at the cost of a second pass.",
         js: "function groupByParity(nums) {\n  return {\n    even: nums.filter((n) => n % 2 === 0),\n    odd: nums.filter((n) => n % 2 !== 0),\n  };\n}\n",
         ts: "function groupByParity(nums: number[]): { even: number[]; odd: number[] } {\n  return {\n    even: nums.filter((n) => n % 2 === 0),\n    odd: nums.filter((n) => n % 2 !== 0),\n  };\n}\n",
+        commentedCode: {
+          js: "function groupByParity(nums) {\n  return {\n    // Keep values divisible by two in their original order.\n    even: nums.filter((n) => n % 2 === 0),\n    // A second pass keeps every value with a nonzero remainder.\n    odd: nums.filter((n) => n % 2 !== 0),\n  };\n}\n",
+          ts: "function groupByParity(nums: number[]): { even: number[]; odd: number[] } {\n  return {\n    // Keep values divisible by two in their original order.\n    even: nums.filter((n) => n % 2 === 0),\n    // A second pass keeps every value with a nonzero remainder.\n    odd: nums.filter((n) => n % 2 !== 0),\n  };\n}\n",
+        },
         time: "O(n)",
         space: "O(n)",
       },
@@ -545,6 +671,10 @@ const drafts: ProblemDraft[] = [
         approach: "Append each value the first time it is encountered.",
         js: "function uniqueValues(values) {\n  const seen = new Set();\n  const out = [];\n  for (const v of values) {\n    if (!seen.has(v)) {\n      seen.add(v);\n      out.push(v);\n    }\n  }\n  return out;\n}\n",
         ts: "function uniqueValues(values: number[]): number[] {\n  const seen = new Set<number>();\n  const out: number[] = [];\n  for (const v of values) {\n    if (!seen.has(v)) {\n      seen.add(v);\n      out.push(v);\n    }\n  }\n  return out;\n}\n",
+        commentedCode: {
+          js: "function uniqueValues(values) {\n  // Track values already copied so duplicates can be skipped.\n  const seen = new Set();\n  const out = [];\n\n  // Reading left to right preserves first-occurrence order.\n  for (const v of values) {\n    if (!seen.has(v)) {\n      // Mark and append only the first time this value appears.\n      seen.add(v);\n      out.push(v);\n    }\n  }\n\n  return out;\n}\n",
+          ts: "function uniqueValues(values: number[]): number[] {\n  // Track values already copied so duplicates can be skipped.\n  const seen = new Set<number>();\n  const out: number[] = [];\n\n  // Reading left to right preserves first-occurrence order.\n  for (const v of values) {\n    if (!seen.has(v)) {\n      // Mark and append only the first time this value appears.\n      seen.add(v);\n      out.push(v);\n    }\n  }\n\n  return out;\n}\n",
+        },
         time: "O(n)",
         space: "O(n)",
       },
@@ -553,6 +683,10 @@ const drafts: ProblemDraft[] = [
         approach: "Keep a value only where its index equals its first index.",
         js: "function uniqueValues(values) {\n  return values.filter((v, i) => values.indexOf(v) === i);\n}\n",
         ts: "function uniqueValues(values: number[]): number[] {\n  return values.filter((v, i) => values.indexOf(v) === i);\n}\n",
+        commentedCode: {
+          js: "function uniqueValues(values) {\n  // Keep a value only at the index where it first appears in the array.\n  return values.filter((v, i) => values.indexOf(v) === i);\n}\n",
+          ts: "function uniqueValues(values: number[]): number[] {\n  // Keep a value only at the index where it first appears in the array.\n  return values.filter((v, i) => values.indexOf(v) === i);\n}\n",
+        },
         time: "O(n²)",
         space: "O(n)",
       },
@@ -600,6 +734,10 @@ const drafts: ProblemDraft[] = [
         approach: "Increment a per-word counter, defaulting missing keys to 0.",
         js: "function countBy(words) {\n  const result = {};\n  for (const w of words) {\n    result[w] = (result[w] || 0) + 1;\n  }\n  return result;\n}\n",
         ts: "function countBy(words: string[]): Record<string, number> {\n  const result: Record<string, number> = {};\n  for (const w of words) {\n    result[w] = (result[w] || 0) + 1;\n  }\n  return result;\n}\n",
+        commentedCode: {
+          js: "function countBy(words) {\n  // Use one object key per distinct word.\n  const result = {};\n\n  for (const w of words) {\n    // Read the existing count, default missing words to zero, then add this occurrence.\n    result[w] = (result[w] || 0) + 1;\n  }\n\n  return result;\n}\n",
+          ts: "function countBy(words: string[]): Record<string, number> {\n  // Use one object key per distinct word.\n  const result: Record<string, number> = {};\n\n  for (const w of words) {\n    // Read the existing count, default missing words to zero, then add this occurrence.\n    result[w] = (result[w] || 0) + 1;\n  }\n\n  return result;\n}\n",
+        },
         time: "O(n)",
         space: "O(k)",
       },
@@ -608,6 +746,10 @@ const drafts: ProblemDraft[] = [
         approach: "Fold the list into a counts object.",
         js: "function countBy(words) {\n  return words.reduce((acc, w) => {\n    acc[w] = (acc[w] || 0) + 1;\n    return acc;\n  }, {});\n}\n",
         ts: "function countBy(words: string[]): Record<string, number> {\n  return words.reduce<Record<string, number>>((acc, w) => {\n    acc[w] = (acc[w] || 0) + 1;\n    return acc;\n  }, {});\n}\n",
+        commentedCode: {
+          js: "function countBy(words) {\n  // Fold every word into one shared counts object.\n  return words.reduce((acc, w) => {\n    // Increment this word's count, starting from zero when the key is absent.\n    acc[w] = (acc[w] || 0) + 1;\n    // Return the accumulator so reduce carries it to the next iteration.\n    return acc;\n  }, {});\n}\n",
+          ts: "function countBy(words: string[]): Record<string, number> {\n  // Fold every word into one shared counts object.\n  return words.reduce<Record<string, number>>((acc, w) => {\n    // Increment this word's count, starting from zero when the key is absent.\n    acc[w] = (acc[w] || 0) + 1;\n    // Return the accumulator so reduce carries it to the next iteration.\n    return acc;\n  }, {});\n}\n",
+        },
         time: "O(n)",
         space: "O(k)",
       },
@@ -655,6 +797,10 @@ const drafts: ProblemDraft[] = [
         approach: "Spread arrays, push scalars.",
         js: "function flattenDepthOne(values) {\n  const out = [];\n  for (const item of values) {\n    if (Array.isArray(item)) out.push(...item);\n    else out.push(item);\n  }\n  return out;\n}\n",
         ts: "function flattenDepthOne(values: Array<number | number[]>): number[] {\n  const out: number[] = [];\n  for (const item of values) {\n    if (Array.isArray(item)) out.push(...item);\n    else out.push(item);\n  }\n  return out;\n}\n",
+        commentedCode: {
+          js: "function flattenDepthOne(values) {\n  // Collect every scalar in one output array.\n  const out = [];\n\n  for (const item of values) {\n    if (Array.isArray(item)) {\n      // Spread a nested array so its numbers are appended individually.\n      out.push(...item);\n    } else {\n      // A scalar is already at the desired depth.\n      out.push(item);\n    }\n  }\n\n  return out;\n}\n",
+          ts: "function flattenDepthOne(values: Array<number | number[]>): number[] {\n  // Collect every scalar in one output array.\n  const out: number[] = [];\n\n  for (const item of values) {\n    if (Array.isArray(item)) {\n      // Spread a nested array so its numbers are appended individually.\n      out.push(...item);\n    } else {\n      // A scalar is already at the desired depth.\n      out.push(item);\n    }\n  }\n\n  return out;\n}\n",
+        },
         time: "O(n)",
         space: "O(n)",
       },
@@ -663,6 +809,10 @@ const drafts: ProblemDraft[] = [
         approach: "`Array.prototype.flat(1)` does exactly one level.",
         js: "function flattenDepthOne(values) {\n  return values.flat(1);\n}\n",
         ts: "function flattenDepthOne(values: Array<number | number[]>): number[] {\n  return values.flat(1) as number[];\n}\n",
+        commentedCode: {
+          js: "function flattenDepthOne(values) {\n  // Flatten with depth one so only the allowed single nesting layer is removed.\n  return values.flat(1);\n}\n",
+          ts: "function flattenDepthOne(values: Array<number | number[]>): number[] {\n  // Flatten with depth one; the input contract guarantees the result contains numbers.\n  return values.flat(1) as number[];\n}\n",
+        },
         time: "O(n)",
         space: "O(n)",
       },
@@ -711,6 +861,10 @@ const drafts: ProblemDraft[] = [
         approach: "Strip digits from the right with % and integer division.",
         js: "function digitSum(n) {\n  let sum = 0;\n  while (n > 0) {\n    sum += n % 10;\n    n = Math.floor(n / 10);\n  }\n  return sum;\n}\n",
         ts: "function digitSum(n: number): number {\n  let sum = 0;\n  while (n > 0) {\n    sum += n % 10;\n    n = Math.floor(n / 10);\n  }\n  return sum;\n}\n",
+        commentedCode: {
+          js: "function digitSum(n) {\n  // Accumulate digits removed from the right side of the number.\n  let sum = 0;\n\n  while (n > 0) {\n    // The remainder after division by ten is the current last digit.\n    sum += n % 10;\n    // Integer division removes that digit before the next iteration.\n    n = Math.floor(n / 10);\n  }\n\n  // For n = 0 the loop is skipped, leaving the correct sum of zero.\n  return sum;\n}\n",
+          ts: "function digitSum(n: number): number {\n  // Accumulate digits removed from the right side of the number.\n  let sum = 0;\n\n  while (n > 0) {\n    // The remainder after division by ten is the current last digit.\n    sum += n % 10;\n    // Integer division removes that digit before the next iteration.\n    n = Math.floor(n / 10);\n  }\n\n  // For n = 0 the loop is skipped, leaving the correct sum of zero.\n  return sum;\n}\n",
+        },
         time: "O(log n)",
         space: "O(1)",
       },
@@ -719,6 +873,10 @@ const drafts: ProblemDraft[] = [
         approach: "Treat the number as text and total its digit characters.",
         js: "function digitSum(n) {\n  return String(n).split('').reduce((s, d) => s + Number(d), 0);\n}\n",
         ts: "function digitSum(n: number): number {\n  return String(n).split('').reduce((s, d) => s + Number(d), 0);\n}\n",
+        commentedCode: {
+          js: "function digitSum(n) {\n  // Convert to digit characters, then add each numeric digit to a total starting at zero.\n  return String(n).split('').reduce((s, d) => s + Number(d), 0);\n}\n",
+          ts: "function digitSum(n: number): number {\n  // Convert to digit characters, then add each numeric digit to a total starting at zero.\n  return String(n).split('').reduce((s, d) => s + Number(d), 0);\n}\n",
+        },
         time: "O(log n)",
         space: "O(log n)",
       },
@@ -766,6 +924,10 @@ const drafts: ProblemDraft[] = [
         approach: "Reduce with the remainder until one argument is zero.",
         js: "function gcd(a, b) {\n  while (b !== 0) {\n    const t = b;\n    b = a % b;\n    a = t;\n  }\n  return a;\n}\n",
         ts: "function gcd(a: number, b: number): number {\n  while (b !== 0) {\n    const t = b;\n    b = a % b;\n    a = t;\n  }\n  return a;\n}\n",
+        commentedCode: {
+          js: "function gcd(a, b) {\n  // Repeatedly replace the pair with (b, a mod b).\n  while (b !== 0) {\n    // Save the old divisor before overwriting b with the remainder.\n    const t = b;\n    b = a % b;\n    a = t;\n  }\n\n  // When the remainder reaches zero, a is the greatest common divisor.\n  return a;\n}\n",
+          ts: "function gcd(a: number, b: number): number {\n  // Repeatedly replace the pair with (b, a mod b).\n  while (b !== 0) {\n    // Save the old divisor before overwriting b with the remainder.\n    const t = b;\n    b = a % b;\n    a = t;\n  }\n\n  // When the remainder reaches zero, a is the greatest common divisor.\n  return a;\n}\n",
+        },
         time: "O(log min(a,b))",
         space: "O(1)",
       },
@@ -774,6 +936,10 @@ const drafts: ProblemDraft[] = [
         approach: "Try divisors from the smaller value down until one divides both.",
         js: "function gcd(a, b) {\n  for (let d = Math.min(a, b); d >= 1; d--) {\n    if (a % d === 0 && b % d === 0) return d;\n  }\n  return 1;\n}\n",
         ts: "function gcd(a: number, b: number): number {\n  for (let d = Math.min(a, b); d >= 1; d--) {\n    if (a % d === 0 && b % d === 0) return d;\n  }\n  return 1;\n}\n",
+        commentedCode: {
+          js: "function gcd(a, b) {\n  // No common divisor can be larger than the smaller input.\n  for (let d = Math.min(a, b); d >= 1; d--) {\n    // The first value dividing both inputs is the greatest common divisor.\n    if (a % d === 0 && b % d === 0) {\n      return d;\n    }\n  }\n\n  // Positive integers always share 1, so this is a defensive fallback.\n  return 1;\n}\n",
+          ts: "function gcd(a: number, b: number): number {\n  // No common divisor can be larger than the smaller input.\n  for (let d = Math.min(a, b); d >= 1; d--) {\n    // The first value dividing both inputs is the greatest common divisor.\n    if (a % d === 0 && b % d === 0) {\n      return d;\n    }\n  }\n\n  // Positive integers always share 1, so this is a defensive fallback.\n  return 1;\n}\n",
+        },
         time: "O(min(a,b))",
         space: "O(1)",
       },
@@ -821,6 +987,10 @@ const drafts: ProblemDraft[] = [
         approach: "Test divisors only up to the square root.",
         js: "function isPrime(n) {\n  if (n < 2) return false;\n  for (let d = 2; d * d <= n; d++) {\n    if (n % d === 0) return false;\n  }\n  return true;\n}\n",
         ts: "function isPrime(n: number): boolean {\n  if (n < 2) return false;\n  for (let d = 2; d * d <= n; d++) {\n    if (n % d === 0) return false;\n  }\n  return true;\n}\n",
+        commentedCode: {
+          js: "function isPrime(n) {\n  // Prime numbers are integers greater than one.\n  if (n < 2) {\n    return false;\n  }\n\n  // Any composite number has at least one factor at or below its square root.\n  for (let d = 2; d * d <= n; d++) {\n    // An exact divisor other than one and n proves n is composite.\n    if (n % d === 0) {\n      return false;\n    }\n  }\n\n  // No possible small factor divided n.\n  return true;\n}\n",
+          ts: "function isPrime(n: number): boolean {\n  // Prime numbers are integers greater than one.\n  if (n < 2) {\n    return false;\n  }\n\n  // Any composite number has at least one factor at or below its square root.\n  for (let d = 2; d * d <= n; d++) {\n    // An exact divisor other than one and n proves n is composite.\n    if (n % d === 0) {\n      return false;\n    }\n  }\n\n  // No possible small factor divided n.\n  return true;\n}\n",
+        },
         time: "O(√n)",
         space: "O(1)",
       },
@@ -829,6 +999,10 @@ const drafts: ProblemDraft[] = [
         approach: "A simpler but slower bound: no factor exceeds n/2.",
         js: "function isPrime(n) {\n  if (n < 2) return false;\n  for (let d = 2; d <= n / 2; d++) {\n    if (n % d === 0) return false;\n  }\n  return true;\n}\n",
         ts: "function isPrime(n: number): boolean {\n  if (n < 2) return false;\n  for (let d = 2; d <= n / 2; d++) {\n    if (n % d === 0) return false;\n  }\n  return true;\n}\n",
+        commentedCode: {
+          js: "function isPrime(n) {\n  // Values below two do not meet the definition of prime.\n  if (n < 2) {\n    return false;\n  }\n\n  // Test every possible nontrivial divisor up to half of n.\n  for (let d = 2; d <= n / 2; d++) {\n    if (n % d === 0) {\n      // Dividing evenly means n has a factor besides one and itself.\n      return false;\n    }\n  }\n\n  return true;\n}\n",
+          ts: "function isPrime(n: number): boolean {\n  // Values below two do not meet the definition of prime.\n  if (n < 2) {\n    return false;\n  }\n\n  // Test every possible nontrivial divisor up to half of n.\n  for (let d = 2; d <= n / 2; d++) {\n    if (n % d === 0) {\n      // Dividing evenly means n has a factor besides one and itself.\n      return false;\n    }\n  }\n\n  return true;\n}\n",
+        },
         time: "O(n)",
         space: "O(1)",
       },

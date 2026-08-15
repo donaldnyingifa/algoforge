@@ -97,6 +97,64 @@ function shortestDistance(n: number, edges: number[][], src: number, dst: number
   return dist[dst] === Infinity ? -1 : dist[dst];
 }
 `,
+        commentedCode: {
+          js: `${H}
+function shortestDistance(n, edges, src, dst) {
+  // Store each directed edge beside its starting node for efficient relaxation.
+  const adj = Array.from({ length: n }, () => []);
+  for (const [u, v, w] of edges) adj[u].push([v, w]);
+  // dist[u] is the best source-to-u distance discovered so far.
+  const dist = new Array(n).fill(Infinity);
+  dist[src] = 0;
+  // Encode (distance, node) as one number so the shared numeric heap orders by distance.
+  const BASE = 1000000;
+  const heap = new MinHeap();
+  // The source has distance zero, so its encoded key is simply src.
+  heap.push(src);
+  while (heap.size()) {
+    // Always expand the queued state with the smallest tentative distance.
+    const key = heap.pop();
+    const d = Math.floor(key / BASE), u = key % BASE;
+    // A node may have been queued before a better route was found; discard that stale state.
+    if (d > dist[u]) continue;
+    for (const [v, w] of adj[u]) {
+      // Relax u -> v only when routing through u strictly improves v's best distance.
+      if (d + w < dist[v]) { dist[v] = d + w; heap.push((d + w) * BASE + v); }
+    }
+  }
+  // Infinity means no directed route from src ever reached dst.
+  return dist[dst] === Infinity ? -1 : dist[dst];
+}
+`,
+          ts: `${H}
+function shortestDistance(n: number, edges: number[][], src: number, dst: number): number {
+  // Store each directed edge beside its starting node for efficient relaxation.
+  const adj = Array.from({ length: n }, () => []);
+  for (const [u, v, w] of edges) adj[u].push([v, w]);
+  // dist[u] is the best source-to-u distance discovered so far.
+  const dist = new Array(n).fill(Infinity);
+  dist[src] = 0;
+  // Encode (distance, node) as one number so the shared numeric heap orders by distance.
+  const BASE = 1000000;
+  const heap = new MinHeap();
+  // The source has distance zero, so its encoded key is simply src.
+  heap.push(src);
+  while (heap.size()) {
+    // Always expand the queued state with the smallest tentative distance.
+    const key = heap.pop();
+    const d = Math.floor(key / BASE), u = key % BASE;
+    // A node may have been queued before a better route was found; discard that stale state.
+    if (d > dist[u]) continue;
+    for (const [v, w] of adj[u]) {
+      // Relax u -> v only when routing through u strictly improves v's best distance.
+      if (d + w < dist[v]) { dist[v] = d + w; heap.push((d + w) * BASE + v); }
+    }
+  }
+  // Infinity means no directed route from src ever reached dst.
+  return dist[dst] === Infinity ? -1 : dist[dst];
+}
+`,
+        },
         time: "O((n + e)·log n)",
         space: "O(n + e)",
       },
@@ -105,6 +163,10 @@ function shortestDistance(n: number, edges: number[][], src: number, dst: number
         approach: "Repeatedly scan for the nearest unsettled node — no heap needed.",
         js: "function shortestDistance(n, edges, src, dst) {\n  const adj = Array.from({ length: n }, () => []);\n  for (const [u, v, w] of edges) adj[u].push([v, w]);\n  const dist = new Array(n).fill(Infinity);\n  const done = new Array(n).fill(false);\n  dist[src] = 0;\n  for (let it = 0; it < n; it++) {\n    let u = -1, best = Infinity;\n    for (let i = 0; i < n; i++) if (!done[i] && dist[i] < best) { best = dist[i]; u = i; }\n    if (u === -1) break;\n    done[u] = true;\n    for (const [v, w] of adj[u]) if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;\n  }\n  return dist[dst] === Infinity ? -1 : dist[dst];\n}\n",
         ts: "function shortestDistance(n: number, edges: number[][], src: number, dst: number): number {\n  const adj = Array.from({ length: n }, () => []);\n  for (const [u, v, w] of edges) adj[u].push([v, w]);\n  const dist = new Array(n).fill(Infinity);\n  const done = new Array(n).fill(false);\n  dist[src] = 0;\n  for (let it = 0; it < n; it++) {\n    let u = -1, best = Infinity;\n    for (let i = 0; i < n; i++) if (!done[i] && dist[i] < best) { best = dist[i]; u = i; }\n    if (u === -1) break;\n    done[u] = true;\n    for (const [v, w] of adj[u]) if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;\n  }\n  return dist[dst] === Infinity ? -1 : dist[dst];\n}\n",
+        commentedCode: {
+          js: "function shortestDistance(n, edges, src, dst) {\n  // Group outgoing directed edges by their starting node.\n  const adj = Array.from({ length: n }, () => []);\n  for (const [u, v, w] of edges) adj[u].push([v, w]);\n  // dist holds tentative shortest distances; done marks distances already settled.\n  const dist = new Array(n).fill(Infinity);\n  const done = new Array(n).fill(false);\n  dist[src] = 0;\n  // Settle at most one node per iteration.\n  for (let it = 0; it < n; it++) {\n    // Scan for the closest node whose shortest distance is not final yet.\n    let u = -1, best = Infinity;\n    for (let i = 0; i < n; i++) if (!done[i] && dist[i] < best) { best = dist[i]; u = i; }\n    // No unsettled reachable node remains, so further iterations cannot help.\n    if (u === -1) break;\n    // Non-negative weights make u's currently-smallest distance final.\n    done[u] = true;\n    // Relax every outgoing edge using the newly settled distance to u.\n    for (const [v, w] of adj[u]) if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;\n  }\n  // Translate the unreachable sentinel into the problem's required -1.\n  return dist[dst] === Infinity ? -1 : dist[dst];\n}\n",
+          ts: "function shortestDistance(n: number, edges: number[][], src: number, dst: number): number {\n  // Group outgoing directed edges by their starting node.\n  const adj = Array.from({ length: n }, () => []);\n  for (const [u, v, w] of edges) adj[u].push([v, w]);\n  // dist holds tentative shortest distances; done marks distances already settled.\n  const dist = new Array(n).fill(Infinity);\n  const done = new Array(n).fill(false);\n  dist[src] = 0;\n  // Settle at most one node per iteration.\n  for (let it = 0; it < n; it++) {\n    // Scan for the closest node whose shortest distance is not final yet.\n    let u = -1, best = Infinity;\n    for (let i = 0; i < n; i++) if (!done[i] && dist[i] < best) { best = dist[i]; u = i; }\n    // No unsettled reachable node remains, so further iterations cannot help.\n    if (u === -1) break;\n    // Non-negative weights make u's currently-smallest distance final.\n    done[u] = true;\n    // Relax every outgoing edge using the newly settled distance to u.\n    for (const [v, w] of adj[u]) if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;\n  }\n  // Translate the unreachable sentinel into the problem's required -1.\n  return dist[dst] === Infinity ? -1 : dist[dst];\n}\n",
+        },
         time: "O(n² + e)",
         space: "O(n + e)",
       },
@@ -187,6 +249,58 @@ function dijkstraAll(n: number, edges: number[][], src: number): number[] {
   return dist.map((d) => (d === Infinity ? -1 : d));
 }
 `,
+        commentedCode: {
+          js: `${H}
+function dijkstraAll(n, edges, src) {
+  // Build the directed adjacency list once so each settled node exposes its edges.
+  const adj = Array.from({ length: n }, () => []);
+  for (const [u, v, w] of edges) adj[u].push([v, w]);
+  // Infinity represents a node for which no source path has been discovered.
+  const dist = new Array(n).fill(Infinity);
+  dist[src] = 0;
+  // Pack distance first so numeric heap order matches Dijkstra's priority.
+  const BASE = 1000000;
+  const heap = new MinHeap();
+  heap.push(src);
+  while (heap.size()) {
+    // Pop and decode the smallest queued (distance, node) state.
+    const key = heap.pop();
+    const d = Math.floor(key / BASE), u = key % BASE;
+    // Ignore an obsolete entry left behind after u received a shorter distance.
+    if (d > dist[u]) continue;
+    // A successful relaxation records and schedules the better route to v.
+    for (const [v, w] of adj[u]) if (d + w < dist[v]) { dist[v] = d + w; heap.push((d + w) * BASE + v); }
+  }
+  // Preserve every finite shortest distance and expose unreachable nodes as -1.
+  return dist.map((d) => (d === Infinity ? -1 : d));
+}
+`,
+          ts: `${H}
+function dijkstraAll(n: number, edges: number[][], src: number): number[] {
+  // Build the directed adjacency list once so each settled node exposes its edges.
+  const adj = Array.from({ length: n }, () => []);
+  for (const [u, v, w] of edges) adj[u].push([v, w]);
+  // Infinity represents a node for which no source path has been discovered.
+  const dist = new Array(n).fill(Infinity);
+  dist[src] = 0;
+  // Pack distance first so numeric heap order matches Dijkstra's priority.
+  const BASE = 1000000;
+  const heap = new MinHeap();
+  heap.push(src);
+  while (heap.size()) {
+    // Pop and decode the smallest queued (distance, node) state.
+    const key = heap.pop();
+    const d = Math.floor(key / BASE), u = key % BASE;
+    // Ignore an obsolete entry left behind after u received a shorter distance.
+    if (d > dist[u]) continue;
+    // A successful relaxation records and schedules the better route to v.
+    for (const [v, w] of adj[u]) if (d + w < dist[v]) { dist[v] = d + w; heap.push((d + w) * BASE + v); }
+  }
+  // Preserve every finite shortest distance and expose unreachable nodes as -1.
+  return dist.map((d) => (d === Infinity ? -1 : d));
+}
+`,
+        },
         time: "O((n + e)·log n)",
         space: "O(n + e)",
       },
@@ -195,6 +309,10 @@ function dijkstraAll(n: number, edges: number[][], src: number): number[] {
         approach: "Nearest-node scan variant returning the full distance vector.",
         js: "function dijkstraAll(n, edges, src) {\n  const adj = Array.from({ length: n }, () => []);\n  for (const [u, v, w] of edges) adj[u].push([v, w]);\n  const dist = new Array(n).fill(Infinity);\n  const done = new Array(n).fill(false);\n  dist[src] = 0;\n  for (let it = 0; it < n; it++) {\n    let u = -1, best = Infinity;\n    for (let i = 0; i < n; i++) if (!done[i] && dist[i] < best) { best = dist[i]; u = i; }\n    if (u === -1) break;\n    done[u] = true;\n    for (const [v, w] of adj[u]) if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;\n  }\n  return dist.map((d) => (d === Infinity ? -1 : d));\n}\n",
         ts: "function dijkstraAll(n: number, edges: number[][], src: number): number[] {\n  const adj = Array.from({ length: n }, () => []);\n  for (const [u, v, w] of edges) adj[u].push([v, w]);\n  const dist = new Array(n).fill(Infinity);\n  const done = new Array(n).fill(false);\n  dist[src] = 0;\n  for (let it = 0; it < n; it++) {\n    let u = -1, best = Infinity;\n    for (let i = 0; i < n; i++) if (!done[i] && dist[i] < best) { best = dist[i]; u = i; }\n    if (u === -1) break;\n    done[u] = true;\n    for (const [v, w] of adj[u]) if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;\n  }\n  return dist.map((d) => (d === Infinity ? -1 : d));\n}\n",
+        commentedCode: {
+          js: "function dijkstraAll(n, edges, src) {\n  // Keep every directed outgoing edge in its source node's adjacency bucket.\n  const adj = Array.from({ length: n }, () => []);\n  for (const [u, v, w] of edges) adj[u].push([v, w]);\n  // dist is tentative until its node is selected; done records settled nodes.\n  const dist = new Array(n).fill(Infinity);\n  const done = new Array(n).fill(false);\n  dist[src] = 0;\n  // Each pass settles the nearest remaining reachable node.\n  for (let it = 0; it < n; it++) {\n    let u = -1, best = Infinity;\n    // Select the minimum tentative distance by scanning instead of using a heap.\n    for (let i = 0; i < n; i++) if (!done[i] && dist[i] < best) { best = dist[i]; u = i; }\n    // If selection fails, every remaining node is unreachable from src.\n    if (u === -1) break;\n    done[u] = true;\n    // Extend the shortest route to u across each outgoing edge when it improves v.\n    for (const [v, w] of adj[u]) if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;\n  }\n  // Convert only the still-unreachable entries to the public -1 sentinel.\n  return dist.map((d) => (d === Infinity ? -1 : d));\n}\n",
+          ts: "function dijkstraAll(n: number, edges: number[][], src: number): number[] {\n  // Keep every directed outgoing edge in its source node's adjacency bucket.\n  const adj = Array.from({ length: n }, () => []);\n  for (const [u, v, w] of edges) adj[u].push([v, w]);\n  // dist is tentative until its node is selected; done records settled nodes.\n  const dist = new Array(n).fill(Infinity);\n  const done = new Array(n).fill(false);\n  dist[src] = 0;\n  // Each pass settles the nearest remaining reachable node.\n  for (let it = 0; it < n; it++) {\n    let u = -1, best = Infinity;\n    // Select the minimum tentative distance by scanning instead of using a heap.\n    for (let i = 0; i < n; i++) if (!done[i] && dist[i] < best) { best = dist[i]; u = i; }\n    // If selection fails, every remaining node is unreachable from src.\n    if (u === -1) break;\n    done[u] = true;\n    // Extend the shortest route to u across each outgoing edge when it improves v.\n    for (const [v, w] of adj[u]) if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;\n  }\n  // Convert only the still-unreachable entries to the public -1 sentinel.\n  return dist.map((d) => (d === Infinity ? -1 : d));\n}\n",
+        },
         time: "O(n² + e)",
         space: "O(n + e)",
       },
@@ -281,6 +399,60 @@ function networkDelayTime(n: number, edges: number[][], src: number): number {
   return ans;
 }
 `,
+        commentedCode: {
+          js: `${H}
+function networkDelayTime(n, edges, src) {
+  // Directed travel times become outgoing adjacency entries.
+  const adj = Array.from({ length: n }, () => []);
+  for (const [u, v, w] of edges) adj[u].push([v, w]);
+  // Each shortest distance is the earliest time that node can receive the signal.
+  const dist = new Array(n).fill(Infinity);
+  dist[src] = 0;
+  // Encode distance in the high part so MinHeap pops the earliest arrival first.
+  const BASE = 1000000;
+  const heap = new MinHeap();
+  heap.push(src);
+  while (heap.size()) {
+    const key = heap.pop();
+    const d = Math.floor(key / BASE), u = key % BASE;
+    // Skip a queued arrival that was superseded by a faster route to u.
+    if (d > dist[u]) continue;
+    // Propagate the signal through u whenever it improves a neighbor's arrival time.
+    for (const [v, w] of adj[u]) if (d + w < dist[v]) { dist[v] = d + w; heap.push((d + w) * BASE + v); }
+  }
+  let ans = 0;
+  // The network delay is the last finite arrival; one unreachable node makes it impossible.
+  for (const d of dist) { if (d === Infinity) return -1; ans = Math.max(ans, d); }
+  return ans;
+}
+`,
+          ts: `${H}
+function networkDelayTime(n: number, edges: number[][], src: number): number {
+  // Directed travel times become outgoing adjacency entries.
+  const adj = Array.from({ length: n }, () => []);
+  for (const [u, v, w] of edges) adj[u].push([v, w]);
+  // Each shortest distance is the earliest time that node can receive the signal.
+  const dist = new Array(n).fill(Infinity);
+  dist[src] = 0;
+  // Encode distance in the high part so MinHeap pops the earliest arrival first.
+  const BASE = 1000000;
+  const heap = new MinHeap();
+  heap.push(src);
+  while (heap.size()) {
+    const key = heap.pop();
+    const d = Math.floor(key / BASE), u = key % BASE;
+    // Skip a queued arrival that was superseded by a faster route to u.
+    if (d > dist[u]) continue;
+    // Propagate the signal through u whenever it improves a neighbor's arrival time.
+    for (const [v, w] of adj[u]) if (d + w < dist[v]) { dist[v] = d + w; heap.push((d + w) * BASE + v); }
+  }
+  let ans = 0;
+  // The network delay is the last finite arrival; one unreachable node makes it impossible.
+  for (const d of dist) { if (d === Infinity) return -1; ans = Math.max(ans, d); }
+  return ans;
+}
+`,
+        },
         time: "O((n + e)·log n)",
         space: "O(n + e)",
       },
@@ -289,6 +461,10 @@ function networkDelayTime(n: number, edges: number[][], src: number): number {
         approach: "Nearest-node scan, then the maximum settled distance.",
         js: "function networkDelayTime(n, edges, src) {\n  const adj = Array.from({ length: n }, () => []);\n  for (const [u, v, w] of edges) adj[u].push([v, w]);\n  const dist = new Array(n).fill(Infinity);\n  const done = new Array(n).fill(false);\n  dist[src] = 0;\n  for (let it = 0; it < n; it++) {\n    let u = -1, best = Infinity;\n    for (let i = 0; i < n; i++) if (!done[i] && dist[i] < best) { best = dist[i]; u = i; }\n    if (u === -1) break;\n    done[u] = true;\n    for (const [v, w] of adj[u]) if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;\n  }\n  let ans = 0;\n  for (const d of dist) { if (d === Infinity) return -1; ans = Math.max(ans, d); }\n  return ans;\n}\n",
         ts: "function networkDelayTime(n: number, edges: number[][], src: number): number {\n  const adj = Array.from({ length: n }, () => []);\n  for (const [u, v, w] of edges) adj[u].push([v, w]);\n  const dist = new Array(n).fill(Infinity);\n  const done = new Array(n).fill(false);\n  dist[src] = 0;\n  for (let it = 0; it < n; it++) {\n    let u = -1, best = Infinity;\n    for (let i = 0; i < n; i++) if (!done[i] && dist[i] < best) { best = dist[i]; u = i; }\n    if (u === -1) break;\n    done[u] = true;\n    for (const [v, w] of adj[u]) if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;\n  }\n  let ans = 0;\n  for (const d of dist) { if (d === Infinity) return -1; ans = Math.max(ans, d); }\n  return ans;\n}\n",
+        commentedCode: {
+          js: "function networkDelayTime(n, edges, src) {\n  // Build directed adjacency lists of destinations and travel times.\n  const adj = Array.from({ length: n }, () => []);\n  for (const [u, v, w] of edges) adj[u].push([v, w]);\n  // dist is each node's earliest known arrival; done means that time is final.\n  const dist = new Array(n).fill(Infinity);\n  const done = new Array(n).fill(false);\n  dist[src] = 0;\n  for (let it = 0; it < n; it++) {\n    // Find the unfinished node that currently receives the signal first.\n    let u = -1, best = Infinity;\n    for (let i = 0; i < n; i++) if (!done[i] && dist[i] < best) { best = dist[i]; u = i; }\n    // No finite candidate means the remaining nodes cannot receive the signal.\n    if (u === -1) break;\n    done[u] = true;\n    // Forward from u and retain a neighbor's earliest possible arrival.\n    for (const [v, w] of adj[u]) if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;\n  }\n  let ans = 0;\n  // Any Infinity makes full delivery impossible; otherwise take the latest arrival.\n  for (const d of dist) { if (d === Infinity) return -1; ans = Math.max(ans, d); }\n  return ans;\n}\n",
+          ts: "function networkDelayTime(n: number, edges: number[][], src: number): number {\n  // Build directed adjacency lists of destinations and travel times.\n  const adj = Array.from({ length: n }, () => []);\n  for (const [u, v, w] of edges) adj[u].push([v, w]);\n  // dist is each node's earliest known arrival; done means that time is final.\n  const dist = new Array(n).fill(Infinity);\n  const done = new Array(n).fill(false);\n  dist[src] = 0;\n  for (let it = 0; it < n; it++) {\n    // Find the unfinished node that currently receives the signal first.\n    let u = -1, best = Infinity;\n    for (let i = 0; i < n; i++) if (!done[i] && dist[i] < best) { best = dist[i]; u = i; }\n    // No finite candidate means the remaining nodes cannot receive the signal.\n    if (u === -1) break;\n    done[u] = true;\n    // Forward from u and retain a neighbor's earliest possible arrival.\n    for (const [v, w] of adj[u]) if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;\n  }\n  let ans = 0;\n  // Any Infinity makes full delivery impossible; otherwise take the latest arrival.\n  for (const d of dist) { if (d === Infinity) return -1; ans = Math.max(ans, d); }\n  return ans;\n}\n",
+        },
         time: "O(n² + e)",
         space: "O(n + e)",
       },
@@ -337,6 +513,10 @@ function networkDelayTime(n: number, edges: number[][], src: number): number {
         approach: "Relax all edges K+1 times over a snapshot of the last round.",
         js: "function cheapestFlights(n, edges, src, dst, K) {\n  let dist = new Array(n).fill(Infinity);\n  dist[src] = 0;\n  for (let i = 0; i <= K; i++) {\n    const nd = dist.slice();\n    for (const [u, v, w] of edges) if (dist[u] !== Infinity && dist[u] + w < nd[v]) nd[v] = dist[u] + w;\n    dist = nd;\n  }\n  return dist[dst] === Infinity ? -1 : dist[dst];\n}\n",
         ts: "function cheapestFlights(n: number, edges: number[][], src: number, dst: number, K: number): number {\n  let dist = new Array(n).fill(Infinity);\n  dist[src] = 0;\n  for (let i = 0; i <= K; i++) {\n    const nd = dist.slice();\n    for (const [u, v, w] of edges) if (dist[u] !== Infinity && dist[u] + w < nd[v]) nd[v] = dist[u] + w;\n    dist = nd;\n  }\n  return dist[dst] === Infinity ? -1 : dist[dst];\n}\n",
+        commentedCode: {
+          js: "function cheapestFlights(n, edges, src, dst, K) {\n  // dist[v] is the cheapest price using no more flights than prior completed rounds.\n  let dist = new Array(n).fill(Infinity);\n  dist[src] = 0;\n  // K stops permit at most K + 1 flight edges, hence exactly K + 1 relax rounds.\n  for (let i = 0; i <= K; i++) {\n    // Read from dist and write to a snapshot so one round adds at most one flight.\n    const nd = dist.slice();\n    // Extend only reachable routes, keeping the cheapest price allowed this round.\n    for (const [u, v, w] of edges) if (dist[u] !== Infinity && dist[u] + w < nd[v]) nd[v] = dist[u] + w;\n    // The next round may extend routes that use one additional edge.\n    dist = nd;\n  }\n  // No finite bounded-edge route to dst means the requested trip is impossible.\n  return dist[dst] === Infinity ? -1 : dist[dst];\n}\n",
+          ts: "function cheapestFlights(n: number, edges: number[][], src: number, dst: number, K: number): number {\n  // dist[v] is the cheapest price using no more flights than prior completed rounds.\n  let dist = new Array(n).fill(Infinity);\n  dist[src] = 0;\n  // K stops permit at most K + 1 flight edges, hence exactly K + 1 relax rounds.\n  for (let i = 0; i <= K; i++) {\n    // Read from dist and write to a snapshot so one round adds at most one flight.\n    const nd = dist.slice();\n    // Extend only reachable routes, keeping the cheapest price allowed this round.\n    for (const [u, v, w] of edges) if (dist[u] !== Infinity && dist[u] + w < nd[v]) nd[v] = dist[u] + w;\n    // The next round may extend routes that use one additional edge.\n    dist = nd;\n  }\n  // No finite bounded-edge route to dst means the requested trip is impossible.\n  return dist[dst] === Infinity ? -1 : dist[dst];\n}\n",
+        },
         time: "O(K·e)",
         space: "O(n)",
       },
@@ -345,6 +525,10 @@ function networkDelayTime(n: number, edges: number[][], src: number): number {
         approach: "Cheapest cost from a node given a remaining edge budget, cached.",
         js: "function cheapestFlights(n, edges, src, dst, K) {\n  const adj = Array.from({ length: n }, () => []);\n  for (const [u, v, w] of edges) adj[u].push([v, w]);\n  const memo = new Map();\n  const go = (u, budget) => {\n    if (u === dst) return 0;\n    if (budget === 0) return Infinity;\n    const key = u * (K + 2) + budget;\n    if (memo.has(key)) return memo.get(key);\n    let best = Infinity;\n    for (const [v, w] of adj[u]) { const sub = go(v, budget - 1); if (sub !== Infinity) best = Math.min(best, w + sub); }\n    memo.set(key, best);\n    return best;\n  };\n  const r = go(src, K + 1);\n  return r === Infinity ? -1 : r;\n}\n",
         ts: "function cheapestFlights(n: number, edges: number[][], src: number, dst: number, K: number): number {\n  const adj = Array.from({ length: n }, () => []);\n  for (const [u, v, w] of edges) adj[u].push([v, w]);\n  const memo = new Map<number, number>();\n  const go = (u: number, budget: number): number => {\n    if (u === dst) return 0;\n    if (budget === 0) return Infinity;\n    const key = u * (K + 2) + budget;\n    if (memo.has(key)) return memo.get(key);\n    let best = Infinity;\n    for (const [v, w] of adj[u]) { const sub = go(v, budget - 1); if (sub !== Infinity) best = Math.min(best, w + sub); }\n    memo.set(key, best);\n    return best;\n  };\n  const r = go(src, K + 1);\n  return r === Infinity ? -1 : r;\n}\n",
+        commentedCode: {
+          js: "function cheapestFlights(n, edges, src, dst, K) {\n  // Group possible next flights by their departure city.\n  const adj = Array.from({ length: n }, () => []);\n  for (const [u, v, w] of edges) adj[u].push([v, w]);\n  // Cache each subproblem: cheapest u-to-dst price with this many edges left.\n  const memo = new Map();\n  const go = (u, budget) => {\n    // Reaching the destination needs no further flights or cost.\n    if (u === dst) return 0;\n    // A non-destination cannot continue after consuming the entire edge budget.\n    if (budget === 0) return Infinity;\n    // K + 2 possible budget values make this numeric state key collision-free.\n    const key = u * (K + 2) + budget;\n    if (memo.has(key)) return memo.get(key);\n    let best = Infinity;\n    // Try every first flight, then optimally spend one fewer edge from its endpoint.\n    for (const [v, w] of adj[u]) { const sub = go(v, budget - 1); if (sub !== Infinity) best = Math.min(best, w + sub); }\n    memo.set(key, best);\n    return best;\n  };\n  // At most K stops means the complete route may use K + 1 flight edges.\n  const r = go(src, K + 1);\n  return r === Infinity ? -1 : r;\n}\n",
+          ts: "function cheapestFlights(n: number, edges: number[][], src: number, dst: number, K: number): number {\n  // Group possible next flights by their departure city.\n  const adj = Array.from({ length: n }, () => []);\n  for (const [u, v, w] of edges) adj[u].push([v, w]);\n  // Cache each subproblem: cheapest u-to-dst price with this many edges left.\n  const memo = new Map<number, number>();\n  const go = (u: number, budget: number): number => {\n    // Reaching the destination needs no further flights or cost.\n    if (u === dst) return 0;\n    // A non-destination cannot continue after consuming the entire edge budget.\n    if (budget === 0) return Infinity;\n    // K + 2 possible budget values make this numeric state key collision-free.\n    const key = u * (K + 2) + budget;\n    if (memo.has(key)) return memo.get(key);\n    let best = Infinity;\n    // Try every first flight, then optimally spend one fewer edge from its endpoint.\n    for (const [v, w] of adj[u]) { const sub = go(v, budget - 1); if (sub !== Infinity) best = Math.min(best, w + sub); }\n    memo.set(key, best);\n    return best;\n  };\n  // At most K stops means the complete route may use K + 1 flight edges.\n  const r = go(src, K + 1);\n  return r === Infinity ? -1 : r;\n}\n",
+        },
         time: "O(n·K + K·e)",
         space: "O(n·K)",
       },
@@ -393,6 +577,10 @@ function networkDelayTime(n: number, edges: number[][], src: number): number {
         approach: "Relax every edge repeatedly until distances stabilize.",
         js: "function bellmanFord(n, edges, src) {\n  const dist = new Array(n).fill(Infinity);\n  dist[src] = 0;\n  for (let i = 0; i < n - 1; i++)\n    for (const [u, v, w] of edges) if (dist[u] !== Infinity && dist[u] + w < dist[v]) dist[v] = dist[u] + w;\n  return dist.map((d) => (d === Infinity ? -1 : d));\n}\n",
         ts: "function bellmanFord(n: number, edges: number[][], src: number): number[] {\n  const dist = new Array(n).fill(Infinity);\n  dist[src] = 0;\n  for (let i = 0; i < n - 1; i++)\n    for (const [u, v, w] of edges) if (dist[u] !== Infinity && dist[u] + w < dist[v]) dist[v] = dist[u] + w;\n  return dist.map((d) => (d === Infinity ? -1 : d));\n}\n",
+        commentedCode: {
+          js: "function bellmanFord(n, edges, src) {\n  // Infinity marks nodes not yet reachable from the source; the source costs zero.\n  const dist = new Array(n).fill(Infinity);\n  dist[src] = 0;\n  // A simple shortest path has at most n - 1 edges, so that many passes suffice.\n  for (let i = 0; i < n - 1; i++)\n    // Relax every directed edge, but never extend the artificial Infinity sentinel.\n    for (const [u, v, w] of edges) if (dist[u] !== Infinity && dist[u] + w < dist[v]) dist[v] = dist[u] + w;\n  // Negative weights are retained; only truly unreachable Infinity becomes -1.\n  return dist.map((d) => (d === Infinity ? -1 : d));\n}\n",
+          ts: "function bellmanFord(n: number, edges: number[][], src: number): number[] {\n  // Infinity marks nodes not yet reachable from the source; the source costs zero.\n  const dist = new Array(n).fill(Infinity);\n  dist[src] = 0;\n  // A simple shortest path has at most n - 1 edges, so that many passes suffice.\n  for (let i = 0; i < n - 1; i++)\n    // Relax every directed edge, but never extend the artificial Infinity sentinel.\n    for (const [u, v, w] of edges) if (dist[u] !== Infinity && dist[u] + w < dist[v]) dist[v] = dist[u] + w;\n  // Negative weights are retained; only truly unreachable Infinity becomes -1.\n  return dist.map((d) => (d === Infinity ? -1 : d));\n}\n",
+        },
         time: "O(n·e)",
         space: "O(n)",
       },
@@ -401,6 +589,10 @@ function networkDelayTime(n: number, edges: number[][], src: number): number {
         approach: "Only re-relax from nodes whose distance just improved.",
         js: "function bellmanFord(n, edges, src) {\n  const adj = Array.from({ length: n }, () => []);\n  for (const [u, v, w] of edges) adj[u].push([v, w]);\n  const dist = new Array(n).fill(Infinity);\n  dist[src] = 0;\n  const inQ = new Array(n).fill(false);\n  const q = [src]; inQ[src] = true;\n  while (q.length) {\n    const u = q.shift(); inQ[u] = false;\n    for (const [v, w] of adj[u]) if (dist[u] + w < dist[v]) { dist[v] = dist[u] + w; if (!inQ[v]) { inQ[v] = true; q.push(v); } }\n  }\n  return dist.map((d) => (d === Infinity ? -1 : d));\n}\n",
         ts: "function bellmanFord(n: number, edges: number[][], src: number): number[] {\n  const adj = Array.from({ length: n }, () => []);\n  for (const [u, v, w] of edges) adj[u].push([v, w]);\n  const dist = new Array(n).fill(Infinity);\n  dist[src] = 0;\n  const inQ = new Array(n).fill(false);\n  const q = [src]; inQ[src] = true;\n  while (q.length) {\n    const u = q.shift(); inQ[u] = false;\n    for (const [v, w] of adj[u]) if (dist[u] + w < dist[v]) { dist[v] = dist[u] + w; if (!inQ[v]) { inQ[v] = true; q.push(v); } }\n  }\n  return dist.map((d) => (d === Infinity ? -1 : d));\n}\n",
+        commentedCode: {
+          js: "function bellmanFord(n, edges, src) {\n  // Store outgoing edges so only nodes whose distance changed need to be revisited.\n  const adj = Array.from({ length: n }, () => []);\n  for (const [u, v, w] of edges) adj[u].push([v, w]);\n  const dist = new Array(n).fill(Infinity);\n  dist[src] = 0;\n  // inQ prevents duplicate pending entries without blocking a later re-enqueue.\n  const inQ = new Array(n).fill(false);\n  const q = [src]; inQ[src] = true;\n  while (q.length) {\n    // Removing u makes it eligible to be queued again if a later path improves it.\n    const u = q.shift(); inQ[u] = false;\n    // Only a strict relaxation changes state; schedule v so its improvement propagates.\n    for (const [v, w] of adj[u]) if (dist[u] + w < dist[v]) { dist[v] = dist[u] + w; if (!inQ[v]) { inQ[v] = true; q.push(v); } }\n  }\n  // Queue exhaustion means no improvement remains to propagate through the graph.\n  return dist.map((d) => (d === Infinity ? -1 : d));\n}\n",
+          ts: "function bellmanFord(n: number, edges: number[][], src: number): number[] {\n  // Store outgoing edges so only nodes whose distance changed need to be revisited.\n  const adj = Array.from({ length: n }, () => []);\n  for (const [u, v, w] of edges) adj[u].push([v, w]);\n  const dist = new Array(n).fill(Infinity);\n  dist[src] = 0;\n  // inQ prevents duplicate pending entries without blocking a later re-enqueue.\n  const inQ = new Array(n).fill(false);\n  const q = [src]; inQ[src] = true;\n  while (q.length) {\n    // Removing u makes it eligible to be queued again if a later path improves it.\n    const u = q.shift(); inQ[u] = false;\n    // Only a strict relaxation changes state; schedule v so its improvement propagates.\n    for (const [v, w] of adj[u]) if (dist[u] + w < dist[v]) { dist[v] = dist[u] + w; if (!inQ[v]) { inQ[v] = true; q.push(v); } }\n  }\n  // Queue exhaustion means no improvement remains to propagate through the graph.\n  return dist.map((d) => (d === Infinity ? -1 : d));\n}\n",
+        },
         time: "O(n·e) worst case",
         space: "O(n + e)",
       },
@@ -449,6 +641,10 @@ function networkDelayTime(n: number, edges: number[][], src: number): number {
         approach: "After n − 1 passes, any still-improving edge lies on a negative cycle.",
         js: "function hasNegativeCycle(n, edges) {\n  const dist = new Array(n).fill(0);\n  for (let i = 0; i < n - 1; i++)\n    for (const [u, v, w] of edges) if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;\n  for (const [u, v, w] of edges) if (dist[u] + w < dist[v]) return true;\n  return false;\n}\n",
         ts: "function hasNegativeCycle(n: number, edges: number[][]): boolean {\n  const dist = new Array(n).fill(0);\n  for (let i = 0; i < n - 1; i++)\n    for (const [u, v, w] of edges) if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;\n  for (const [u, v, w] of edges) if (dist[u] + w < dist[v]) return true;\n  return false;\n}\n",
+        commentedCode: {
+          js: "function hasNegativeCycle(n, edges) {\n  // Zero-seeding every node is equivalent to a virtual source reaching all components.\n  const dist = new Array(n).fill(0);\n  // Without a negative cycle, all simple shortest walks stabilize within n - 1 edges.\n  for (let i = 0; i < n - 1; i++)\n    // Each relaxation records a lower-weight walk ending at v.\n    for (const [u, v, w] of edges) if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;\n  // A further improvement must use a repeated vertex and therefore a negative cycle.\n  for (const [u, v, w] of edges) if (dist[u] + w < dist[v]) return true;\n  return false;\n}\n",
+          ts: "function hasNegativeCycle(n: number, edges: number[][]): boolean {\n  // Zero-seeding every node is equivalent to a virtual source reaching all components.\n  const dist = new Array(n).fill(0);\n  // Without a negative cycle, all simple shortest walks stabilize within n - 1 edges.\n  for (let i = 0; i < n - 1; i++)\n    // Each relaxation records a lower-weight walk ending at v.\n    for (const [u, v, w] of edges) if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;\n  // A further improvement must use a repeated vertex and therefore a negative cycle.\n  for (const [u, v, w] of edges) if (dist[u] + w < dist[v]) return true;\n  return false;\n}\n",
+        },
         time: "O(n·e)",
         space: "O(n)",
       },
@@ -457,6 +653,10 @@ function networkDelayTime(n: number, edges: number[][], src: number): number {
         approach: "Run n passes; if the last pass still changes a distance, a cycle exists.",
         js: "function hasNegativeCycle(n, edges) {\n  const dist = new Array(n).fill(0);\n  for (let i = 0; i < n; i++) {\n    let changed = false;\n    for (const [u, v, w] of edges) if (dist[u] + w < dist[v]) { dist[v] = dist[u] + w; changed = true; }\n    if (!changed) return false;\n    if (i === n - 1 && changed) return true;\n  }\n  return false;\n}\n",
         ts: "function hasNegativeCycle(n: number, edges: number[][]): boolean {\n  const dist = new Array(n).fill(0);\n  for (let i = 0; i < n; i++) {\n    let changed = false;\n    for (const [u, v, w] of edges) if (dist[u] + w < dist[v]) { dist[v] = dist[u] + w; changed = true; }\n    if (!changed) return false;\n    if (i === n - 1 && changed) return true;\n  }\n  return false;\n}\n",
+        commentedCode: {
+          js: "function hasNegativeCycle(n, edges) {\n  // Treat every component as reachable by initializing all virtual-source distances to zero.\n  const dist = new Array(n).fill(0);\n  // Observe whether relaxation continues through the decisive n-th pass.\n  for (let i = 0; i < n; i++) {\n    let changed = false;\n    // Lowering any endpoint means this pass found a cheaper walk to that node.\n    for (const [u, v, w] of edges) if (dist[u] + w < dist[v]) { dist[v] = dist[u] + w; changed = true; }\n    // Early stability proves no edge can lead into a negative cycle.\n    if (!changed) return false;\n    // An improvement after n edges requires repeating a vertex on a negative cycle.\n    if (i === n - 1 && changed) return true;\n  }\n  return false;\n}\n",
+          ts: "function hasNegativeCycle(n: number, edges: number[][]): boolean {\n  // Treat every component as reachable by initializing all virtual-source distances to zero.\n  const dist = new Array(n).fill(0);\n  // Observe whether relaxation continues through the decisive n-th pass.\n  for (let i = 0; i < n; i++) {\n    let changed = false;\n    // Lowering any endpoint means this pass found a cheaper walk to that node.\n    for (const [u, v, w] of edges) if (dist[u] + w < dist[v]) { dist[v] = dist[u] + w; changed = true; }\n    // Early stability proves no edge can lead into a negative cycle.\n    if (!changed) return false;\n    // An improvement after n edges requires repeating a vertex on a negative cycle.\n    if (i === n - 1 && changed) return true;\n  }\n  return false;\n}\n",
+        },
         time: "O(n·e)",
         space: "O(n)",
       },
@@ -545,6 +745,60 @@ function countReachableWithin(n: number, edges: number[][], src: number, limit: 
   return count;
 }
 `,
+        commentedCode: {
+          js: `${H}
+function countReachableWithin(n, edges, src, limit) {
+  // Build outgoing adjacency entries for the directed weighted graph.
+  const adj = Array.from({ length: n }, () => []);
+  for (const [u, v, w] of edges) adj[u].push([v, w]);
+  // Dijkstra maintains the best discovered source distance for every node.
+  const dist = new Array(n).fill(Infinity);
+  dist[src] = 0;
+  // Packing distance before node lets the numeric MinHeap prioritize distance.
+  const BASE = 1000000;
+  const heap = new MinHeap();
+  heap.push(src);
+  while (heap.size()) {
+    const key = heap.pop();
+    const d = Math.floor(key / BASE), u = key % BASE;
+    // An improved route can leave older, larger entries in the heap; skip them.
+    if (d > dist[u]) continue;
+    // Record and queue every strictly shorter route through u.
+    for (const [v, w] of adj[u]) if (d + w < dist[v]) { dist[v] = d + w; heap.push((d + w) * BASE + v); }
+  }
+  let count = 0;
+  // Only finite shortest distances no greater than limit qualify; src has distance zero.
+  for (const d of dist) if (d <= limit) count++;
+  return count;
+}
+`,
+          ts: `${H}
+function countReachableWithin(n: number, edges: number[][], src: number, limit: number): number {
+  // Build outgoing adjacency entries for the directed weighted graph.
+  const adj = Array.from({ length: n }, () => []);
+  for (const [u, v, w] of edges) adj[u].push([v, w]);
+  // Dijkstra maintains the best discovered source distance for every node.
+  const dist = new Array(n).fill(Infinity);
+  dist[src] = 0;
+  // Packing distance before node lets the numeric MinHeap prioritize distance.
+  const BASE = 1000000;
+  const heap = new MinHeap();
+  heap.push(src);
+  while (heap.size()) {
+    const key = heap.pop();
+    const d = Math.floor(key / BASE), u = key % BASE;
+    // An improved route can leave older, larger entries in the heap; skip them.
+    if (d > dist[u]) continue;
+    // Record and queue every strictly shorter route through u.
+    for (const [v, w] of adj[u]) if (d + w < dist[v]) { dist[v] = d + w; heap.push((d + w) * BASE + v); }
+  }
+  let count = 0;
+  // Only finite shortest distances no greater than limit qualify; src has distance zero.
+  for (const d of dist) if (d <= limit) count++;
+  return count;
+}
+`,
+        },
         time: "O((n + e)·log n)",
         space: "O(n + e)",
       },
@@ -553,6 +807,10 @@ function countReachableWithin(n: number, edges: number[][], src: number, limit: 
         approach: "Nearest-node scan, then count settled distances ≤ limit.",
         js: "function countReachableWithin(n, edges, src, limit) {\n  const adj = Array.from({ length: n }, () => []);\n  for (const [u, v, w] of edges) adj[u].push([v, w]);\n  const dist = new Array(n).fill(Infinity);\n  const done = new Array(n).fill(false);\n  dist[src] = 0;\n  for (let it = 0; it < n; it++) {\n    let u = -1, best = Infinity;\n    for (let i = 0; i < n; i++) if (!done[i] && dist[i] < best) { best = dist[i]; u = i; }\n    if (u === -1) break;\n    done[u] = true;\n    for (const [v, w] of adj[u]) if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;\n  }\n  let count = 0;\n  for (const d of dist) if (d <= limit) count++;\n  return count;\n}\n",
         ts: "function countReachableWithin(n: number, edges: number[][], src: number, limit: number): number {\n  const adj = Array.from({ length: n }, () => []);\n  for (const [u, v, w] of edges) adj[u].push([v, w]);\n  const dist = new Array(n).fill(Infinity);\n  const done = new Array(n).fill(false);\n  dist[src] = 0;\n  for (let it = 0; it < n; it++) {\n    let u = -1, best = Infinity;\n    for (let i = 0; i < n; i++) if (!done[i] && dist[i] < best) { best = dist[i]; u = i; }\n    if (u === -1) break;\n    done[u] = true;\n    for (const [v, w] of adj[u]) if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;\n  }\n  let count = 0;\n  for (const d of dist) if (d <= limit) count++;\n  return count;\n}\n",
+        commentedCode: {
+          js: "function countReachableWithin(n, edges, src, limit) {\n  // Keep each directed edge in the bucket for its starting node.\n  const adj = Array.from({ length: n }, () => []);\n  for (const [u, v, w] of edges) adj[u].push([v, w]);\n  // dist is tentative until selection; done prevents settling a node twice.\n  const dist = new Array(n).fill(Infinity);\n  const done = new Array(n).fill(false);\n  dist[src] = 0;\n  for (let it = 0; it < n; it++) {\n    // Scan all unfinished nodes for the currently smallest source distance.\n    let u = -1, best = Infinity;\n    for (let i = 0; i < n; i++) if (!done[i] && dist[i] < best) { best = dist[i]; u = i; }\n    // No finite candidate means every remaining node is unreachable.\n    if (u === -1) break;\n    done[u] = true;\n    // Improve neighbors by extending the final shortest route to u.\n    for (const [v, w] of adj[u]) if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;\n  }\n  let count = 0;\n  // The source counts because its distance is zero; Infinity never passes a finite limit.\n  for (const d of dist) if (d <= limit) count++;\n  return count;\n}\n",
+          ts: "function countReachableWithin(n: number, edges: number[][], src: number, limit: number): number {\n  // Keep each directed edge in the bucket for its starting node.\n  const adj = Array.from({ length: n }, () => []);\n  for (const [u, v, w] of edges) adj[u].push([v, w]);\n  // dist is tentative until selection; done prevents settling a node twice.\n  const dist = new Array(n).fill(Infinity);\n  const done = new Array(n).fill(false);\n  dist[src] = 0;\n  for (let it = 0; it < n; it++) {\n    // Scan all unfinished nodes for the currently smallest source distance.\n    let u = -1, best = Infinity;\n    for (let i = 0; i < n; i++) if (!done[i] && dist[i] < best) { best = dist[i]; u = i; }\n    // No finite candidate means every remaining node is unreachable.\n    if (u === -1) break;\n    done[u] = true;\n    // Improve neighbors by extending the final shortest route to u.\n    for (const [v, w] of adj[u]) if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;\n  }\n  let count = 0;\n  // The source counts because its distance is zero; Infinity never passes a finite limit.\n  for (const d of dist) if (d <= limit) count++;\n  return count;\n}\n",
+        },
         time: "O(n² + e)",
         space: "O(n + e)",
       },
@@ -643,6 +901,66 @@ function countShortestPaths(n: number, edges: number[][], src: number, dst: numb
   return dist[dst] === Infinity ? 0 : ways[dst];
 }
 `,
+        commentedCode: {
+          js: `${H}
+function countShortestPaths(n, edges, src, dst) {
+  // Group directed choices by source node for Dijkstra's edge relaxations.
+  const adj = Array.from({ length: n }, () => []);
+  for (const [u, v, w] of edges) adj[u].push([v, w]);
+  // dist[v] is the shortest length found; ways[v] counts routes achieving exactly it.
+  const dist = new Array(n).fill(Infinity);
+  const ways = new Array(n).fill(0);
+  // The empty source-to-source path is one path of length zero.
+  dist[src] = 0; ways[src] = 1;
+  const BASE = 1000000;
+  const heap = new MinHeap();
+  heap.push(src);
+  while (heap.size()) {
+    // Settle states from smallest distance to largest because all weights are positive.
+    const key = heap.pop();
+    const d = Math.floor(key / BASE), u = key % BASE;
+    if (d > dist[u]) continue;
+    for (const [v, w] of adj[u]) {
+      // A strictly better length replaces both v's distance and its route count.
+      if (d + w < dist[v]) { dist[v] = d + w; ways[v] = ways[u]; heap.push((d + w) * BASE + v); }
+      // An equal-length route is another distinct shortest path to v.
+      else if (d + w === dist[v]) ways[v] += ways[u];
+    }
+  }
+  // Unreachable destinations have no paths; otherwise return the accumulated ties.
+  return dist[dst] === Infinity ? 0 : ways[dst];
+}
+`,
+          ts: `${H}
+function countShortestPaths(n: number, edges: number[][], src: number, dst: number): number {
+  // Group directed choices by source node for Dijkstra's edge relaxations.
+  const adj = Array.from({ length: n }, () => []);
+  for (const [u, v, w] of edges) adj[u].push([v, w]);
+  // dist[v] is the shortest length found; ways[v] counts routes achieving exactly it.
+  const dist = new Array(n).fill(Infinity);
+  const ways = new Array(n).fill(0);
+  // The empty source-to-source path is one path of length zero.
+  dist[src] = 0; ways[src] = 1;
+  const BASE = 1000000;
+  const heap = new MinHeap();
+  heap.push(src);
+  while (heap.size()) {
+    // Settle states from smallest distance to largest because all weights are positive.
+    const key = heap.pop();
+    const d = Math.floor(key / BASE), u = key % BASE;
+    if (d > dist[u]) continue;
+    for (const [v, w] of adj[u]) {
+      // A strictly better length replaces both v's distance and its route count.
+      if (d + w < dist[v]) { dist[v] = d + w; ways[v] = ways[u]; heap.push((d + w) * BASE + v); }
+      // An equal-length route is another distinct shortest path to v.
+      else if (d + w === dist[v]) ways[v] += ways[u];
+    }
+  }
+  // Unreachable destinations have no paths; otherwise return the accumulated ties.
+  return dist[dst] === Infinity ? 0 : ways[dst];
+}
+`,
+        },
         time: "O((n + e)·log n)",
         space: "O(n + e)",
       },
@@ -651,6 +969,10 @@ function countShortestPaths(n: number, edges: number[][], src: number, dst: numb
         approach: "Settle nodes by nearest-scan, updating counts as distances tie or improve.",
         js: "function countShortestPaths(n, edges, src, dst) {\n  const adj = Array.from({ length: n }, () => []);\n  for (const [u, v, w] of edges) adj[u].push([v, w]);\n  const dist = new Array(n).fill(Infinity);\n  const ways = new Array(n).fill(0);\n  const done = new Array(n).fill(false);\n  dist[src] = 0; ways[src] = 1;\n  for (let it = 0; it < n; it++) {\n    let u = -1, best = Infinity;\n    for (let i = 0; i < n; i++) if (!done[i] && dist[i] < best) { best = dist[i]; u = i; }\n    if (u === -1) break;\n    done[u] = true;\n    for (const [v, w] of adj[u]) {\n      if (dist[u] + w < dist[v]) { dist[v] = dist[u] + w; ways[v] = ways[u]; }\n      else if (dist[u] + w === dist[v]) ways[v] += ways[u];\n    }\n  }\n  return dist[dst] === Infinity ? 0 : ways[dst];\n}\n",
         ts: "function countShortestPaths(n: number, edges: number[][], src: number, dst: number): number {\n  const adj = Array.from({ length: n }, () => []);\n  for (const [u, v, w] of edges) adj[u].push([v, w]);\n  const dist = new Array(n).fill(Infinity);\n  const ways = new Array(n).fill(0);\n  const done = new Array(n).fill(false);\n  dist[src] = 0; ways[src] = 1;\n  for (let it = 0; it < n; it++) {\n    let u = -1, best = Infinity;\n    for (let i = 0; i < n; i++) if (!done[i] && dist[i] < best) { best = dist[i]; u = i; }\n    if (u === -1) break;\n    done[u] = true;\n    for (const [v, w] of adj[u]) {\n      if (dist[u] + w < dist[v]) { dist[v] = dist[u] + w; ways[v] = ways[u]; }\n      else if (dist[u] + w === dist[v]) ways[v] += ways[u];\n    }\n  }\n  return dist[dst] === Infinity ? 0 : ways[dst];\n}\n",
+        commentedCode: {
+          js: "function countShortestPaths(n, edges, src, dst) {\n  // Store every directed weighted edge beside its starting node.\n  const adj = Array.from({ length: n }, () => []);\n  for (const [u, v, w] of edges) adj[u].push([v, w]);\n  // Pair each tentative distance with the number of paths attaining that distance.\n  const dist = new Array(n).fill(Infinity);\n  const ways = new Array(n).fill(0);\n  const done = new Array(n).fill(false);\n  dist[src] = 0; ways[src] = 1;\n  for (let it = 0; it < n; it++) {\n    // Select the closest unsettled node; positive weights finalize its count too.\n    let u = -1, best = Infinity;\n    for (let i = 0; i < n; i++) if (!done[i] && dist[i] < best) { best = dist[i]; u = i; }\n    if (u === -1) break;\n    done[u] = true;\n    for (const [v, w] of adj[u]) {\n      // A shorter route replaces v's previous length and inherits all ways to u.\n      if (dist[u] + w < dist[v]) { dist[v] = dist[u] + w; ways[v] = ways[u]; }\n      // A tie contributes another disjoint choice of final edge into v.\n      else if (dist[u] + w === dist[v]) ways[v] += ways[u];\n    }\n  }\n  // The Infinity sentinel distinguishes no path from a finite path count.\n  return dist[dst] === Infinity ? 0 : ways[dst];\n}\n",
+          ts: "function countShortestPaths(n: number, edges: number[][], src: number, dst: number): number {\n  // Store every directed weighted edge beside its starting node.\n  const adj = Array.from({ length: n }, () => []);\n  for (const [u, v, w] of edges) adj[u].push([v, w]);\n  // Pair each tentative distance with the number of paths attaining that distance.\n  const dist = new Array(n).fill(Infinity);\n  const ways = new Array(n).fill(0);\n  const done = new Array(n).fill(false);\n  dist[src] = 0; ways[src] = 1;\n  for (let it = 0; it < n; it++) {\n    // Select the closest unsettled node; positive weights finalize its count too.\n    let u = -1, best = Infinity;\n    for (let i = 0; i < n; i++) if (!done[i] && dist[i] < best) { best = dist[i]; u = i; }\n    if (u === -1) break;\n    done[u] = true;\n    for (const [v, w] of adj[u]) {\n      // A shorter route replaces v's previous length and inherits all ways to u.\n      if (dist[u] + w < dist[v]) { dist[v] = dist[u] + w; ways[v] = ways[u]; }\n      // A tie contributes another disjoint choice of final edge into v.\n      else if (dist[u] + w === dist[v]) ways[v] += ways[u];\n    }\n  }\n  // The Infinity sentinel distinguishes no path from a finite path count.\n  return dist[dst] === Infinity ? 0 : ways[dst];\n}\n",
+        },
         time: "O(n² + e)",
         space: "O(n + e)",
       },
@@ -699,6 +1021,10 @@ function countShortestPaths(n: number, edges: number[][], src: number, dst: numb
         approach: "Triple loop relaxing every pair through each intermediate node.",
         js: "function floydShortest(n, edges, a, b) {\n  const INF = Infinity;\n  const d = Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => (i === j ? 0 : INF)));\n  for (const [u, v, w] of edges) d[u][v] = Math.min(d[u][v], w);\n  for (let k = 0; k < n; k++)\n    for (let i = 0; i < n; i++)\n      for (let j = 0; j < n; j++)\n        if (d[i][k] + d[k][j] < d[i][j]) d[i][j] = d[i][k] + d[k][j];\n  return d[a][b] === INF ? -1 : d[a][b];\n}\n",
         ts: "function floydShortest(n: number, edges: number[][], a: number, b: number): number {\n  const INF = Infinity;\n  const d = Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => (i === j ? 0 : INF)));\n  for (const [u, v, w] of edges) d[u][v] = Math.min(d[u][v], w);\n  for (let k = 0; k < n; k++)\n    for (let i = 0; i < n; i++)\n      for (let j = 0; j < n; j++)\n        if (d[i][k] + d[k][j] < d[i][j]) d[i][j] = d[i][k] + d[k][j];\n  return d[a][b] === INF ? -1 : d[a][b];\n}\n",
+        commentedCode: {
+          js: "function floydShortest(n, edges, a, b) {\n  const INF = Infinity;\n  // Start with zero self-distance and no known route between distinct nodes.\n  const d = Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => (i === j ? 0 : INF)));\n  // Multiple direct edges may repeat a pair, so retain only the lightest one.\n  for (const [u, v, w] of edges) d[u][v] = Math.min(d[u][v], w);\n  // After phase k, d[i][j] may use only nodes 0..k as internal intermediates.\n  for (let k = 0; k < n; k++)\n    for (let i = 0; i < n; i++)\n      for (let j = 0; j < n; j++)\n        // Either keep the prior route or join the best i-to-k and k-to-j routes.\n        if (d[i][k] + d[k][j] < d[i][j]) d[i][j] = d[i][k] + d[k][j];\n  // The all-pairs matrix now contains the requested shortest distance.\n  return d[a][b] === INF ? -1 : d[a][b];\n}\n",
+          ts: "function floydShortest(n: number, edges: number[][], a: number, b: number): number {\n  const INF = Infinity;\n  // Start with zero self-distance and no known route between distinct nodes.\n  const d = Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => (i === j ? 0 : INF)));\n  // Multiple direct edges may repeat a pair, so retain only the lightest one.\n  for (const [u, v, w] of edges) d[u][v] = Math.min(d[u][v], w);\n  // After phase k, d[i][j] may use only nodes 0..k as internal intermediates.\n  for (let k = 0; k < n; k++)\n    for (let i = 0; i < n; i++)\n      for (let j = 0; j < n; j++)\n        // Either keep the prior route or join the best i-to-k and k-to-j routes.\n        if (d[i][k] + d[k][j] < d[i][j]) d[i][j] = d[i][k] + d[k][j];\n  // The all-pairs matrix now contains the requested shortest distance.\n  return d[a][b] === INF ? -1 : d[a][b];\n}\n",
+        },
         time: "O(n³)",
         space: "O(n²)",
       },
@@ -707,6 +1033,10 @@ function countShortestPaths(n: number, edges: number[][], src: number, dst: numb
         approach: "Single-source relaxation handles the negative edges too.",
         js: "function floydShortest(n, edges, a, b) {\n  const dist = new Array(n).fill(Infinity);\n  dist[a] = 0;\n  for (let i = 0; i < n - 1; i++)\n    for (const [u, v, w] of edges) if (dist[u] !== Infinity && dist[u] + w < dist[v]) dist[v] = dist[u] + w;\n  return dist[b] === Infinity ? -1 : dist[b];\n}\n",
         ts: "function floydShortest(n: number, edges: number[][], a: number, b: number): number {\n  const dist = new Array(n).fill(Infinity);\n  dist[a] = 0;\n  for (let i = 0; i < n - 1; i++)\n    for (const [u, v, w] of edges) if (dist[u] !== Infinity && dist[u] + w < dist[v]) dist[v] = dist[u] + w;\n  return dist[b] === Infinity ? -1 : dist[b];\n}\n",
+        commentedCode: {
+          js: "function floydShortest(n, edges, a, b) {\n  // This alternative only needs distances from the requested source a.\n  const dist = new Array(n).fill(Infinity);\n  dist[a] = 0;\n  // Every simple a-to-b shortest path uses at most n - 1 directed edges.\n  for (let i = 0; i < n - 1; i++)\n    // Bellman-Ford supports negative weights and never extends an unreachable node.\n    for (const [u, v, w] of edges) if (dist[u] !== Infinity && dist[u] + w < dist[v]) dist[v] = dist[u] + w;\n  // If b never received a finite distance, it is unreachable from a.\n  return dist[b] === Infinity ? -1 : dist[b];\n}\n",
+          ts: "function floydShortest(n: number, edges: number[][], a: number, b: number): number {\n  // This alternative only needs distances from the requested source a.\n  const dist = new Array(n).fill(Infinity);\n  dist[a] = 0;\n  // Every simple a-to-b shortest path uses at most n - 1 directed edges.\n  for (let i = 0; i < n - 1; i++)\n    // Bellman-Ford supports negative weights and never extends an unreachable node.\n    for (const [u, v, w] of edges) if (dist[u] !== Infinity && dist[u] + w < dist[v]) dist[v] = dist[u] + w;\n  // If b never received a finite distance, it is unreachable from a.\n  return dist[b] === Infinity ? -1 : dist[b];\n}\n",
+        },
         time: "O(n·e)",
         space: "O(n)",
       },
@@ -755,6 +1085,10 @@ function countShortestPaths(n: number, edges: number[][], src: number, dst: numb
         approach: "All-pairs distances, then the city with the smallest reachable count.",
         js: "function cityWithFewest(n, edges, threshold) {\n  const INF = Infinity;\n  const d = Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => (i === j ? 0 : INF)));\n  for (const [u, v, w] of edges) { d[u][v] = Math.min(d[u][v], w); d[v][u] = Math.min(d[v][u], w); }\n  for (let k = 0; k < n; k++)\n    for (let i = 0; i < n; i++)\n      for (let j = 0; j < n; j++)\n        if (d[i][k] + d[k][j] < d[i][j]) d[i][j] = d[i][k] + d[k][j];\n  let best = n + 1, city = -1;\n  for (let i = 0; i < n; i++) {\n    let c = 0;\n    for (let j = 0; j < n; j++) if (i !== j && d[i][j] <= threshold) c++;\n    if (c <= best) { best = c; city = i; }\n  }\n  return city;\n}\n",
         ts: "function cityWithFewest(n: number, edges: number[][], threshold: number): number {\n  const INF = Infinity;\n  const d = Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => (i === j ? 0 : INF)));\n  for (const [u, v, w] of edges) { d[u][v] = Math.min(d[u][v], w); d[v][u] = Math.min(d[v][u], w); }\n  for (let k = 0; k < n; k++)\n    for (let i = 0; i < n; i++)\n      for (let j = 0; j < n; j++)\n        if (d[i][k] + d[k][j] < d[i][j]) d[i][j] = d[i][k] + d[k][j];\n  let best = n + 1, city = -1;\n  for (let i = 0; i < n; i++) {\n    let c = 0;\n    for (let j = 0; j < n; j++) if (i !== j && d[i][j] <= threshold) c++;\n    if (c <= best) { best = c; city = i; }\n  }\n  return city;\n}\n",
+        commentedCode: {
+          js: "function cityWithFewest(n, edges, threshold) {\n  const INF = Infinity;\n  // Initialize all-pairs distances: zero to self and unknown between distinct cities.\n  const d = Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => (i === j ? 0 : INF)));\n  // Roads are undirected; for duplicate roads keep the lighter weight both ways.\n  for (const [u, v, w] of edges) { d[u][v] = Math.min(d[u][v], w); d[v][u] = Math.min(d[v][u], w); }\n  // Floyd-Warshall gradually allows each k as an intermediate city.\n  for (let k = 0; k < n; k++)\n    for (let i = 0; i < n; i++)\n      for (let j = 0; j < n; j++)\n        if (d[i][k] + d[k][j] < d[i][j]) d[i][j] = d[i][k] + d[k][j];\n  let best = n + 1, city = -1;\n  for (let i = 0; i < n; i++) {\n    let c = 0;\n    // Count other cities whose finalized shortest distance meets the threshold.\n    for (let j = 0; j < n; j++) if (i !== j && d[i][j] <= threshold) c++;\n    // Accepting equality while scanning upward deliberately chooses the largest tied index.\n    if (c <= best) { best = c; city = i; }\n  }\n  return city;\n}\n",
+          ts: "function cityWithFewest(n: number, edges: number[][], threshold: number): number {\n  const INF = Infinity;\n  // Initialize all-pairs distances: zero to self and unknown between distinct cities.\n  const d = Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => (i === j ? 0 : INF)));\n  // Roads are undirected; for duplicate roads keep the lighter weight both ways.\n  for (const [u, v, w] of edges) { d[u][v] = Math.min(d[u][v], w); d[v][u] = Math.min(d[v][u], w); }\n  // Floyd-Warshall gradually allows each k as an intermediate city.\n  for (let k = 0; k < n; k++)\n    for (let i = 0; i < n; i++)\n      for (let j = 0; j < n; j++)\n        if (d[i][k] + d[k][j] < d[i][j]) d[i][j] = d[i][k] + d[k][j];\n  let best = n + 1, city = -1;\n  for (let i = 0; i < n; i++) {\n    let c = 0;\n    // Count other cities whose finalized shortest distance meets the threshold.\n    for (let j = 0; j < n; j++) if (i !== j && d[i][j] <= threshold) c++;\n    // Accepting equality while scanning upward deliberately chooses the largest tied index.\n    if (c <= best) { best = c; city = i; }\n  }\n  return city;\n}\n",
+        },
         time: "O(n³)",
         space: "O(n²)",
       },
@@ -811,6 +1145,74 @@ function cityWithFewest(n: number, edges: number[][], threshold: number): number
   return city;
 }
 `,
+        commentedCode: {
+          js: `${H}
+function cityWithFewest(n, edges, threshold) {
+  // Add both directions because every road can be travelled either way.
+  const adj = Array.from({ length: n }, () => []);
+  for (const [u, v, w] of edges) { adj[u].push([v, w]); adj[v].push([u, w]); }
+  const BASE = 1000000;
+  // Return how many other cities src can reach within the distance threshold.
+  const reachCount = (src) => {
+    const dist = new Array(n).fill(Infinity);
+    dist[src] = 0;
+    const heap = new MinHeap();
+    heap.push(src);
+    while (heap.size()) {
+      // Dijkstra settles the nearest queued state for this particular source city.
+      const key = heap.pop();
+      const d = Math.floor(key / BASE), u = key % BASE;
+      // Ignore an old entry after a shorter route to the same node was queued.
+      if (d > dist[u]) continue;
+      // Relax every road and queue each improved encoded (distance, node) state.
+      for (const [v, w] of adj[u]) if (d + w < dist[v]) { dist[v] = d + w; heap.push((d + w) * BASE + v); }
+    }
+    let c = 0;
+    // Exclude src itself; only other cities within the threshold are neighbors.
+    for (let j = 0; j < n; j++) if (j !== src && dist[j] <= threshold) c++;
+    return c;
+  };
+  let best = n + 1, city = -1;
+  // Recompute single-source distances for every possible source city.
+  for (let i = 0; i < n; i++) { const c = reachCount(i); if (c <= best) { best = c; city = i; } }
+  // The <= update above overwrites ties, leaving the greatest tied index.
+  return city;
+}
+`,
+          ts: `${H}
+function cityWithFewest(n: number, edges: number[][], threshold: number): number {
+  // Add both directions because every road can be travelled either way.
+  const adj = Array.from({ length: n }, () => []);
+  for (const [u, v, w] of edges) { adj[u].push([v, w]); adj[v].push([u, w]); }
+  const BASE = 1000000;
+  // Return how many other cities src can reach within the distance threshold.
+  const reachCount = (src: number): number => {
+    const dist = new Array(n).fill(Infinity);
+    dist[src] = 0;
+    const heap = new MinHeap();
+    heap.push(src);
+    while (heap.size()) {
+      // Dijkstra settles the nearest queued state for this particular source city.
+      const key = heap.pop();
+      const d = Math.floor(key / BASE), u = key % BASE;
+      // Ignore an old entry after a shorter route to the same node was queued.
+      if (d > dist[u]) continue;
+      // Relax every road and queue each improved encoded (distance, node) state.
+      for (const [v, w] of adj[u]) if (d + w < dist[v]) { dist[v] = d + w; heap.push((d + w) * BASE + v); }
+    }
+    let c = 0;
+    // Exclude src itself; only other cities within the threshold are neighbors.
+    for (let j = 0; j < n; j++) if (j !== src && dist[j] <= threshold) c++;
+    return c;
+  };
+  let best = n + 1, city = -1;
+  // Recompute single-source distances for every possible source city.
+  for (let i = 0; i < n; i++) { const c = reachCount(i); if (c <= best) { best = c; city = i; } }
+  // The <= update above overwrites ties, leaving the greatest tied index.
+  return city;
+}
+`,
+        },
         time: "O(n·(n + e)·log n)",
         space: "O(n + e)",
       },
