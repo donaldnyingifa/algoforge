@@ -13,6 +13,8 @@ const named = <M extends Record<string, unknown>>(imp: Promise<M>, key: keyof M)
 
 const Home = lazy(() => named(import("@/pages/Home"), "Home"));
 const Learn = lazy(() => named(import("@/pages/Learn"), "Learn"));
+const Languages = lazy(() => named(import("@/pages/Languages"), "Languages"));
+const LanguageCourse = lazy(() => named(import("@/pages/LanguageCourse"), "LanguageCourse"));
 const Patterns = lazy(() => named(import("@/pages/Patterns"), "Patterns"));
 const Challenges = lazy(() => named(import("@/pages/Challenges"), "Challenges"));
 const ChallengeTrack = lazy(() => named(import("@/pages/ChallengeTrack"), "ChallengeTrack"));
@@ -39,6 +41,8 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Home /> },
       { path: "learn", element: <Learn /> },
+      { path: "languages", element: <Languages /> },
+      { path: "languages/:courseId", element: <LanguageCourse /> },
       { path: "lesson/:moduleId", element: <Lesson /> },
       { path: "checkpoint/:moduleId", element: <Checkpoint /> },
       { path: "test/:moduleId", element: <Test /> },

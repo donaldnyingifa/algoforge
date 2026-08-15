@@ -29,6 +29,7 @@ function Icon({ path }: { path: string }) {
 const NAV: NavItem[] = [
   { to: "/", label: "Home", icon: <Icon path="M3 11 12 3l9 8M5 9v11h5v-6h4v6h5V9" /> },
   { to: "/learn", label: "Learn", icon: <Icon path="M4 5h10a3 3 0 0 1 3 3v11a2 2 0 0 0-2-2H4Zm16 0h-4M20 5v13" /> },
+  { to: "/languages", label: "Languages", icon: <Icon path="M4 4h13a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3ZM8 9h7M8 13h5" /> },
   { to: "/patterns", label: "Patterns", icon: <Icon path="M4 6h6v6H4Zm10 0h6v6h-6ZM4 16h6v4H4Zm10 0h6v4h-6Z" /> },
   { to: "/challenges", label: "Challenges", icon: <Icon path="M6 3h12v4a6 6 0 0 1-12 0Zm0 4H3V5h3m12 2h3V5h-3M9 21h6M12 13v4" /> },
   { to: "/mock", label: "Mock Interview", icon: <Icon path="M8 10h8M8 14h5M4 5h16v12H7l-3 3Z" /> },
