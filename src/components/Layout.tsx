@@ -1,5 +1,4 @@
-import { Suspense } from "react";
-import { Outlet } from "react-router-dom";
+import { Suspense, type ReactNode } from "react";
 import { Sidebar } from "./Sidebar";
 import { ThemeToggle } from "./ThemeToggle";
 import { BackupNudge } from "./BackupNudge";
@@ -13,7 +12,7 @@ function RouteFallback() {
   );
 }
 
-export function Layout() {
+export function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
@@ -33,7 +32,7 @@ export function Layout() {
           <div className="mx-auto max-w-5xl">
             <BackupNudge />
             <Suspense fallback={<RouteFallback />}>
-              <Outlet />
+              {children}
             </Suspense>
           </div>
         </main>

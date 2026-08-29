@@ -12,17 +12,21 @@ import "monaco-editor/esm/vs/language/typescript/monaco.contribution";
 import "monaco-editor/esm/vs/basic-languages/javascript/javascript.contribution";
 import "monaco-editor/esm/vs/basic-languages/typescript/typescript.contribution";
 import { loader } from "@monaco-editor/react";
-import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
-import tsWorker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker";
 
 type MonacoEnvHost = { MonacoEnvironment?: monaco.Environment };
 
 (self as unknown as MonacoEnvHost).MonacoEnvironment = {
   getWorker(_workerId: string, label: string): Worker {
     if (label === "typescript" || label === "javascript") {
-      return new tsWorker();
+      return new Worker(
+        new URL("monaco-editor/esm/vs/language/typescript/ts.worker.js", import.meta.url),
+        { type: "module" },
+      );
     }
-    return new editorWorker();
+    return new Worker(
+      new URL("monaco-editor/esm/vs/editor/editor.worker.js", import.meta.url),
+      { type: "module" },
+    );
   },
 };
 

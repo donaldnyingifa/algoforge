@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink } from "@/lib/router";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import { useProgressStore } from "@/store/progressStore";

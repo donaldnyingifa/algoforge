@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "@/lib/router";
 import { useProgressStore } from "@/store/progressStore";
 import { downloadProgress, isBackupDue } from "@/lib/backup";
 
