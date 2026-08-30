@@ -97,6 +97,25 @@ export function ProgressBar({
   );
 }
 
+/**
+ * Shared inline loading indicator. Used as the `loading` fallback for every
+ * dynamically-imported screen (see app/ClientApp.tsx) — kept as one component
+ * so there's a single place to change the spinner, rather than copies of the
+ * same markup living in multiple files.
+ */
+export function Spinner({ label = "Loading…" }: { label?: string }) {
+  return (
+    <div
+      className="flex items-center justify-center py-20 text-sm text-slate-400"
+      role="status"
+      aria-live="polite"
+    >
+      <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-forge-500" />
+      {label}
+    </div>
+  );
+}
+
 export function PrereqChip({ label }: { label: string }) {
   return (
     <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">

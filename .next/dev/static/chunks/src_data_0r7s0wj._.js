@@ -153,14 +153,20 @@ const modules = {};
 const problems = {};
 const caseStudies = {};
 const complexityQuestions = {};
+/** slug -> id index, kept in step with `problems` so slug lookups are O(1). */ const problemIdBySlug = {};
 function registerProblem(problem) {
-    const slugOwner = Object.values(problems).find((registered)=>registered.slug === problem.slug && registered.id !== problem.id);
-    if (slugOwner) {
-        throw new Error(`Duplicate problem slug "${problem.slug}" for "${slugOwner.id}" and "${problem.id}".`);
+    const slugOwnerId = problemIdBySlug[problem.slug];
+    if (slugOwnerId && slugOwnerId !== problem.id) {
+        throw new Error(`Duplicate problem slug "${problem.slug}" for "${slugOwnerId}" and "${problem.id}".`);
     }
     problems[problem.id] = problem;
+    problemIdBySlug[problem.slug] = problem.id;
 }
 function registerModule(module) {
+    const existing = modules[module.id];
+    if (existing && existing !== module) {
+        throw new Error(`Duplicate module id "${module.id}".`);
+    }
     modules[module.id] = module;
     const stage = getStage(module.stageId);
     if (stage && !stage.moduleIds.includes(module.id)) {
@@ -168,9 +174,17 @@ function registerModule(module) {
     }
 }
 function registerCaseStudy(study) {
+    const existing = caseStudies[study.id];
+    if (existing && existing !== study) {
+        throw new Error(`Duplicate case study id "${study.id}".`);
+    }
     caseStudies[study.id] = study;
 }
 function registerComplexityQuestion(question) {
+    const existing = complexityQuestions[question.id];
+    if (existing && existing !== question) {
+        throw new Error(`Duplicate complexity question id "${question.id}".`);
+    }
     complexityQuestions[question.id] = question;
 }
 function stagesForTrack(track) {
@@ -202,7 +216,8 @@ function getProblem(problemId) {
     return problems[problemId];
 }
 function getProblemBySlug(slug) {
-    return Object.values(problems).find((p)=>p.slug === slug);
+    const id = problemIdBySlug[slug];
+    return id ? problems[id] : undefined;
 }
 function allProblems() {
     return Object.values(problems);

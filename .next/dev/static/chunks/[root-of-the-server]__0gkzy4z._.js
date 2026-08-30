@@ -330,7 +330,9 @@ __turbopack_context__.s([
     "PrereqChip",
     ()=>PrereqChip,
     "ProgressBar",
-    ()=>ProgressBar
+    ()=>ProgressBar,
+    "Spinner",
+    ()=>Spinner
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$cn$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/cn.ts [app-client] (ecmascript)");
@@ -444,6 +446,28 @@ function ProgressBar({ value, max, className }) {
     }, this);
 }
 _c4 = ProgressBar;
+function Spinner({ label = "Loading…" }) {
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+        className: "flex items-center justify-center py-20 text-sm text-slate-400",
+        role: "status",
+        "aria-live": "polite",
+        children: [
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                className: "mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-forge-500"
+            }, void 0, false, {
+                fileName: "[project]/src/components/ui.tsx",
+                lineNumber: 113,
+                columnNumber: 7
+            }, this),
+            label
+        ]
+    }, void 0, true, {
+        fileName: "[project]/src/components/ui.tsx",
+        lineNumber: 108,
+        columnNumber: 5
+    }, this);
+}
+_c5 = Spinner;
 function PrereqChip({ label }) {
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
         className: "inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400",
@@ -453,18 +477,19 @@ function PrereqChip({ label }) {
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/ui.tsx",
-        lineNumber: 102,
+        lineNumber: 121,
         columnNumber: 5
     }, this);
 }
-_c5 = PrereqChip;
-var _c, _c1, _c2, _c3, _c4, _c5;
+_c6 = PrereqChip;
+var _c, _c1, _c2, _c3, _c4, _c5, _c6;
 __turbopack_context__.k.register(_c, "PageHeader");
 __turbopack_context__.k.register(_c1, "Card");
 __turbopack_context__.k.register(_c2, "EmptyState");
 __turbopack_context__.k.register(_c3, "DifficultyBadge");
 __turbopack_context__.k.register(_c4, "ProgressBar");
-__turbopack_context__.k.register(_c5, "PrereqChip");
+__turbopack_context__.k.register(_c5, "Spinner");
+__turbopack_context__.k.register(_c6, "PrereqChip");
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
 }
@@ -623,14 +648,20 @@ const modules = {};
 const problems = {};
 const caseStudies = {};
 const complexityQuestions = {};
+/** slug -> id index, kept in step with `problems` so slug lookups are O(1). */ const problemIdBySlug = {};
 function registerProblem(problem) {
-    const slugOwner = Object.values(problems).find((registered)=>registered.slug === problem.slug && registered.id !== problem.id);
-    if (slugOwner) {
-        throw new Error(`Duplicate problem slug "${problem.slug}" for "${slugOwner.id}" and "${problem.id}".`);
+    const slugOwnerId = problemIdBySlug[problem.slug];
+    if (slugOwnerId && slugOwnerId !== problem.id) {
+        throw new Error(`Duplicate problem slug "${problem.slug}" for "${slugOwnerId}" and "${problem.id}".`);
     }
     problems[problem.id] = problem;
+    problemIdBySlug[problem.slug] = problem.id;
 }
 function registerModule(module) {
+    const existing = modules[module.id];
+    if (existing && existing !== module) {
+        throw new Error(`Duplicate module id "${module.id}".`);
+    }
     modules[module.id] = module;
     const stage = getStage(module.stageId);
     if (stage && !stage.moduleIds.includes(module.id)) {
@@ -638,9 +669,17 @@ function registerModule(module) {
     }
 }
 function registerCaseStudy(study) {
+    const existing = caseStudies[study.id];
+    if (existing && existing !== study) {
+        throw new Error(`Duplicate case study id "${study.id}".`);
+    }
     caseStudies[study.id] = study;
 }
 function registerComplexityQuestion(question) {
+    const existing = complexityQuestions[question.id];
+    if (existing && existing !== question) {
+        throw new Error(`Duplicate complexity question id "${question.id}".`);
+    }
     complexityQuestions[question.id] = question;
 }
 function stagesForTrack(track) {
@@ -672,7 +711,8 @@ function getProblem(problemId) {
     return problems[problemId];
 }
 function getProblemBySlug(slug) {
-    return Object.values(problems).find((p)=>p.slug === slug);
+    const id = problemIdBySlug[slug];
+    return id ? problems[id] : undefined;
 }
 function allProblems() {
     return Object.values(problems);
@@ -944,6 +984,7 @@ __turbopack_context__.s([
     "useParams",
     ()=>useParams
 ]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = /*#__PURE__*/ __turbopack_context__.i("[project]/node_modules/next/dist/build/polyfills/process.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/client/app-dir/link.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/navigation.js [app-client] (ecmascript)");
@@ -992,7 +1033,7 @@ _c1 = NavLink;
 function useParams() {
     _s1();
     const segments = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["usePathname"])().split("/").filter(Boolean).map((segment)=>decodeURIComponent(segment));
-    const [head, value] = segments;
+    const [head, value, extra] = segments;
     if (head === "problem") return {
         slug: value
     };
@@ -1010,6 +1051,9 @@ function useParams() {
     if (head === "case") return {
         caseId: value
     };
+    if (("TURBOPACK compile-time value", "development") !== "production" && extra !== undefined) {
+        console.warn(`useParams(): route "/${segments.join("/")}" has more than two segments. ` + "This shim only decodes /head/value, so params beyond that are dropped. " + "Extend useParams() in src/lib/router.tsx before relying on a deeper path.");
+    }
     return {};
 }
 _s1(useParams, "wVXOWZKWdId76kQQO0KX6Oz3JDA=", false, function() {

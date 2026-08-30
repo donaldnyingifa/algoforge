@@ -29,17 +29,25 @@ account, no backend. All progress lives in your browser.
 
 ## Tech stack
 
-Vite · React 18 · TypeScript (strict) · Tailwind (dark default) · React Router ·
+Next.js (Turbopack) · React 19 · TypeScript (strict) · Tailwind (dark default) ·
 Zustand (+persist) · localForage · @monaco-editor/react · Web Worker + Sucrase ·
-react-markdown · Recharts.
+react-markdown · Recharts · Vitest.
+
+The app is a client-only SPA hosted inside a single Next.js catch-all route
+(`src/app/[[...path]]/page.tsx`) — Next is used as the build/serve layer, not
+for server rendering or API routes. A small compatibility shim in
+`src/lib/router.tsx` maps `next/navigation` onto the `Link`/`NavLink`/
+`useParams`/`Navigate` API the screens were originally written against.
 
 ## Getting started
 
 ```bash
 npm install
-npm run dev      # start the dev server
-npm run build    # type-check + production build
-npm run preview  # preview the production build
+npm run dev        # start the dev server
+npm run build      # production build (type-checked as part of `next build`)
+npm run start      # serve the production build
+npm run typecheck  # tsc --noEmit
+npm test           # run the Vitest unit tests once
 ```
 
 Everything runs in the browser — there is no server to configure and no data
@@ -47,9 +55,14 @@ leaves your machine.
 
 ## Project layout
 
+- `src/app/` — the Next.js entry point: root layout plus the `[[...path]]`
+  catch-all route that mounts the client app.
 - `src/data/` — the curriculum: problems, modules, build labs, challenge tracks,
   and System Design content, registered into `curriculum.ts`.
 - `src/runner/` — the Web Worker code runner, judge, and TS transpile.
 - `src/store/` — Zustand progress store + IndexedDB draft/design stores.
-- `src/pages/` + `src/components/` — the UI (routes are code-split with
-  `React.lazy`, so Monaco and charts load only where needed).
+- `src/screens/` + `src/components/` — the UI (each screen is code-split with
+  `next/dynamic`, so Monaco and charts load only where needed).
+- `src/lib/*.test.ts` (and similar) — Vitest unit tests for the pure logic
+  (XP/rank/streak math, the test-scoring engine, challenge-track building,
+  progress-state normalization).

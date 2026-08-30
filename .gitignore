@@ -5,3 +5,8 @@ dist-ssr
 .DS_Store
 .vite
 coverage
+
+# Next.js build output and generated files (not committed post-migration)
+.next
+next-env.d.ts
+*.tsbuildinfo

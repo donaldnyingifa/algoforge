@@ -13,7 +13,7 @@ __turbopack_context__.v((parentImport) => {
   "static/chunks/src_data_stage6_14zuldn._.js",
   "static/chunks/src_data_systemdesign_13o_1ud._.js",
   "static/chunks/src_data_0r7s0wj._.js",
-  "static/chunks/src_0dnog2w._.js",
+  "static/chunks/src_04i--x0._.js",
   "static/chunks/node_modules_0eyjh_l._.js"
 ].map((chunk) => __turbopack_context__.l(chunk))).then(() => {
         return parentImport("[project]/src/app/ClientApp.tsx [app-client] (ecmascript, next/dynamic entry)");

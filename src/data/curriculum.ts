@@ -125,22 +125,28 @@ export const caseStudies: Record<string, CaseStudy> = {};
 /** Pool of complexity MCQs drawn into module tests. */
 export const complexityQuestions: Record<string, QuizQuestion> = {};
 
+/** slug -> id index, kept in step with `problems` so slug lookups are O(1). */
+const problemIdBySlug: Record<string, string> = {};
+
 /* ---- Registration (used by content files) ------------------------ */
 
 export function registerProblem(problem: Problem): void {
-  const slugOwner = Object.values(problems).find(
-    (registered) => registered.slug === problem.slug && registered.id !== problem.id,
-  );
-  if (slugOwner) {
+  const slugOwnerId = problemIdBySlug[problem.slug];
+  if (slugOwnerId && slugOwnerId !== problem.id) {
     throw new Error(
-      `Duplicate problem slug "${problem.slug}" for "${slugOwner.id}" and "${problem.id}".`,
+      `Duplicate problem slug "${problem.slug}" for "${slugOwnerId}" and "${problem.id}".`,
     );
   }
   problems[problem.id] = problem;
+  problemIdBySlug[problem.slug] = problem.id;
 }
 
 /** Register a module and attach it to its stage (idempotent). */
 export function registerModule(module: Module): void {
+  const existing = modules[module.id];
+  if (existing && existing !== module) {
+    throw new Error(`Duplicate module id "${module.id}".`);
+  }
   modules[module.id] = module;
   const stage = getStage(module.stageId);
   if (stage && !stage.moduleIds.includes(module.id)) {
@@ -149,10 +155,18 @@ export function registerModule(module: Module): void {
 }
 
 export function registerCaseStudy(study: CaseStudy): void {
+  const existing = caseStudies[study.id];
+  if (existing && existing !== study) {
+    throw new Error(`Duplicate case study id "${study.id}".`);
+  }
   caseStudies[study.id] = study;
 }
 
 export function registerComplexityQuestion(question: QuizQuestion): void {
+  const existing = complexityQuestions[question.id];
+  if (existing && existing !== question) {
+    throw new Error(`Duplicate complexity question id "${question.id}".`);
+  }
   complexityQuestions[question.id] = question;
 }
 
@@ -197,7 +211,8 @@ export function getProblem(problemId: string): Problem | undefined {
 }
 
 export function getProblemBySlug(slug: string): Problem | undefined {
-  return Object.values(problems).find((p) => p.slug === slug);
+  const id = problemIdBySlug[slug];
+  return id ? problems[id] : undefined;
 }
 
 export function allProblems(): Problem[] {

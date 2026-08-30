@@ -1,16 +1,7 @@
-import { Suspense, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Sidebar } from "./Sidebar";
 import { ThemeToggle } from "./ThemeToggle";
 import { BackupNudge } from "./BackupNudge";
-
-function RouteFallback() {
-  return (
-    <div className="flex items-center justify-center py-20 text-sm text-slate-400" role="status" aria-live="polite">
-      <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-forge-500" />
-      Loading…
-    </div>
-  );
-}
 
 export function Layout({ children }: { children: ReactNode }) {
   return (
@@ -31,9 +22,14 @@ export function Layout({ children }: { children: ReactNode }) {
         <main className="flex-1 overflow-y-auto px-6 py-6">
           <div className="mx-auto max-w-5xl">
             <BackupNudge />
-            <Suspense fallback={<RouteFallback />}>
-              {children}
-            </Suspense>
+            {/*
+              No Suspense boundary here on purpose: every screen is mounted via
+              next/dynamic with its own `loading` fallback (see the shared
+              <Spinner/> wired up in app/ClientApp.tsx), so each screen shows
+              its own loading state as its chunk loads rather than suspending
+              up to a boundary here.
+            */}
+            {children}
           </div>
         </main>
       </div>

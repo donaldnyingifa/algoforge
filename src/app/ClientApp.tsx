@@ -3,14 +3,10 @@
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { Layout } from "@/components/Layout";
+import { Spinner } from "@/components/ui";
 import "@/data/registerContent";
 
-const loading = () => (
-  <div className="flex items-center justify-center py-20 text-sm text-slate-400" role="status" aria-live="polite">
-    <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-forge-500" />
-    Loading…
-  </div>
-);
+const loading = () => <Spinner />;
 
 const Home = dynamic(() => import("@/screens/Home").then((m) => m.Home), { loading });
 const Learn = dynamic(() => import("@/screens/Learn").then((m) => m.Learn), { loading });
