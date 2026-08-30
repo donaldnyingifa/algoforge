@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "@/lib/router";
 import type { Stage } from "@/types";
-import { modulesForStage } from "@/data/curriculum";
+import { getModule, modulesForStage } from "@/data/curriculum";
 import { Card, EmptyState, PrereqChip } from "./ui";
 import { useProgressStore } from "@/store/progressStore";
 
@@ -73,7 +73,7 @@ function StageBlock({ stage, extra }: { stage: Stage; extra?: ReactNode }) {
                   {m.prerequisiteModuleIds.length > 0 && (
                     <div className="mt-1 flex flex-wrap gap-1.5">
                       {m.prerequisiteModuleIds.map((id) => (
-                        <PrereqChip key={id} label={id} />
+                        <PrereqChip key={id} label={getModule(id)?.title ?? id} />
                       ))}
                     </div>
                   )}
