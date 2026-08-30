@@ -53,7 +53,7 @@ export function Learn() {
     <div>
       <PageHeader
         title="Learn"
-        subtitle="The full curriculum. Nothing is hard-locked — prerequisite chips guide the order, but you may start anywhere."
+        subtitle="The full curriculum. Nothing is hard-locked — prerequisite chips guide the order, but you may start anywhere. Foundations is free; sign in to unlock the rest."
       />
 
       <div className="mb-10">

@@ -5,6 +5,24 @@ import { usePathname } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { ThemeToggle } from "./ThemeToggle";
 import { BackupNudge } from "./BackupNudge";
+import { useAuthStore } from "@/store/authStore";
+
+function AccountBadge() {
+  const user = useAuthStore((s) => s.user);
+  if (user) {
+    return (
+      <span className="hidden max-w-[220px] items-center gap-1.5 truncate rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-500 sm:inline-flex dark:bg-slate-800 dark:text-slate-400">
+        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" aria-hidden="true" />
+        <span className="truncate">Signed in{user.email ? ` · ${user.email}` : ""}</span>
+      </span>
+    );
+  }
+  return (
+    <span className="hidden rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-500 sm:inline dark:bg-slate-800 dark:text-slate-400">
+      No account · saved in your browser
+    </span>
+  );
+}
 
 export function Layout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -93,9 +111,7 @@ export function Layout({ children }: { children: ReactNode }) {
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-3">
-            <span className="hidden rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-500 sm:inline dark:bg-slate-800 dark:text-slate-400">
-              No account · saved in your browser
-            </span>
+            <AccountBadge />
             <ThemeToggle />
           </div>
         </header>

@@ -18,7 +18,7 @@ export function Home() {
     <div>
       <PageHeader
         title="Welcome to AlgoForge"
-        subtitle="A fully offline path through data structures, algorithms, and system design — no account, progress saved right here in your browser."
+        subtitle="A path through data structures, algorithms, and system design. Start free with Foundations — sign in with Google to unlock the rest and back up your progress."
       />
 
       <Card className="mb-6 bg-gradient-to-br from-forge-500 to-forge-700 text-white">

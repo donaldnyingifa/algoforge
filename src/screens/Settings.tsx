@@ -1,9 +1,12 @@
 import { useRef, useState } from "react";
 import { PageHeader, Card } from "@/components/ui";
+import { GoogleIcon } from "@/components/SignInGate";
 import { useThemeStore } from "@/store/themeStore";
 import { useProgressStore } from "@/store/progressStore";
+import { useAuthStore } from "@/store/authStore";
 import { downloadProgress, parseProgressFile } from "@/lib/backup";
-import type { Language } from "@/types";
+import { backUpToCloud, restoreFromCloud } from "@/lib/cloudBackup";
+import type { Language, UserProgress } from "@/types";
 
 export function Settings() {
   const theme = useThemeStore((s) => s.theme);
@@ -48,6 +51,8 @@ export function Settings() {
       />
 
       <div className="space-y-4">
+        <AccountCard />
+
         <Card>
           <h3 className="mb-3 font-semibold">Appearance</h3>
           <div className="flex items-center gap-2">
@@ -164,6 +169,8 @@ export function Settings() {
           )}
         </Card>
 
+        <CloudBackupCard />
+
         <Card>
           <h3 className="mb-1 font-semibold text-red-500">Danger zone</h3>
           <p className="mb-3 text-sm text-slate-500 dark:text-slate-400">
@@ -185,5 +192,151 @@ export function Settings() {
         </Card>
       </div>
     </div>
+  );
+}
+
+function AccountCard() {
+  const user = useAuthStore((s) => s.user);
+  const signingIn = useAuthStore((s) => s.signingIn);
+  const error = useAuthStore((s) => s.error);
+  const signIn = useAuthStore((s) => s.signIn);
+  const signOutUser = useAuthStore((s) => s.signOutUser);
+
+  return (
+    <Card>
+      <h3 className="mb-3 font-semibold">Account</h3>
+      {user ? (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            {user.photoURL && (
+              <img
+                src={user.photoURL}
+                alt=""
+                referrerPolicy="no-referrer"
+                className="h-9 w-9 rounded-full"
+              />
+            )}
+            <div>
+              <div className="text-sm font-medium">{user.displayName ?? "Signed in"}</div>
+              <div className="text-xs text-slate-500 dark:text-slate-400">{user.email}</div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => void signOutUser()}
+            className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            Sign out
+          </button>
+        </div>
+      ) : (
+        <div>
+          <p className="mb-3 text-sm text-slate-500 dark:text-slate-400">
+            Sign in to back up your progress to the cloud and unlock everything past the
+            Foundations stage.
+          </p>
+          <button
+            type="button"
+            onClick={() => void signIn()}
+            disabled={signingIn}
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            <GoogleIcon />
+            {signingIn ? "Signing in…" : "Sign in with Google"}
+          </button>
+        </div>
+      )}
+      {error && <p className="mt-3 text-sm text-red-500 dark:text-red-400">{error}</p>}
+    </Card>
+  );
+}
+
+function CloudBackupCard() {
+  const user = useAuthStore((s) => s.user);
+  const progress = useProgressStore((s) => s.progress);
+  const replaceProgress = useProgressStore((s) => s.replaceProgress);
+  const recomputeDerived = useProgressStore((s) => s.recomputeDerived);
+  const markBackedUp = useProgressStore((s) => s.markBackedUp);
+
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+
+  const onBackUp = async () => {
+    if (!user) return;
+    setBusy(true);
+    setMsg(null);
+    try {
+      await backUpToCloud(user.uid, progress);
+      markBackedUp();
+      setMsg({ kind: "ok", text: "Backed up to the cloud." });
+    } catch (e) {
+      setMsg({ kind: "err", text: e instanceof Error ? e.message : "Backup failed." });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onRestore = async () => {
+    if (!user) return;
+    if (!window.confirm("Restore from your cloud backup? This replaces your current local progress.")) {
+      return;
+    }
+    setBusy(true);
+    setMsg(null);
+    try {
+      const backup = await restoreFromCloud(user.uid);
+      if (!backup) {
+        setMsg({ kind: "err", text: "No cloud backup found yet — back up first." });
+        return;
+      }
+      replaceProgress(backup.progress as UserProgress);
+      recomputeDerived();
+      setMsg({
+        kind: "ok",
+        text: `Restored from your cloud backup (${new Date(backup.exportedAt).toLocaleString()}).`,
+      });
+    } catch (e) {
+      setMsg({ kind: "err", text: e instanceof Error ? e.message : "Restore failed." });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card>
+      <h3 className="mb-1 font-semibold">Cloud backup</h3>
+      <p className="mb-3 text-sm text-slate-500 dark:text-slate-400">
+        {user
+          ? "Back up to your Google account, or restore onto this browser. Manual, on your terms — not automatic sync."
+          : "Sign in above to back up your progress to the cloud."}
+      </p>
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => void onBackUp()}
+          disabled={!user || busy}
+          className="rounded-lg bg-forge-500 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-forge-600 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {busy ? "Working…" : "Back up now"}
+        </button>
+        <button
+          type="button"
+          onClick={() => void onRestore()}
+          disabled={!user || busy}
+          className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+        >
+          Restore from cloud
+        </button>
+      </div>
+      {msg && (
+        <p
+          className={`mt-3 text-sm ${
+            msg.kind === "ok" ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
+          }`}
+        >
+          {msg.text}
+        </p>
+      )}
+    </Card>
   );
 }

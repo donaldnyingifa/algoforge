@@ -2,6 +2,8 @@ import { NavLink } from "@/lib/router";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import { useProgressStore } from "@/store/progressStore";
+import { useAuthStore } from "@/store/authStore";
+import { isSegmentGated } from "@/lib/access";
 
 interface NavItem {
   to: string;
@@ -43,6 +45,7 @@ const NAV: NavItem[] = [
 export function Sidebar() {
   const rank = useProgressStore((s) => s.progress.rank);
   const xp = useProgressStore((s) => s.progress.xp);
+  const signedIn = useAuthStore((s) => Boolean(s.user));
 
   return (
     <aside className="flex h-full w-60 shrink-0 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
@@ -59,24 +62,35 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 space-y-1 px-3">
-        {NAV.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.to === "/"}
-            className={({ isActive }) =>
-              cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition",
-                isActive
-                  ? "bg-forge-500 text-white shadow-sm"
-                  : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800",
-              )
-            }
-          >
-            {item.icon}
-            <span>{item.label}</span>
-          </NavLink>
-        ))}
+        {NAV.map((item) => {
+          // Informational only — clicking through still works, the target
+          // screen enforces the real gate. Just avoids a surprise sign-in
+          // wall with no warning. See src/lib/access.ts.
+          const locked = !signedIn && isSegmentGated(item.to.replace(/^\//, ""));
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === "/"}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition",
+                  isActive
+                    ? "bg-forge-500 text-white shadow-sm"
+                    : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800",
+                )
+              }
+            >
+              {item.icon}
+              <span className="flex-1">{item.label}</span>
+              {locked && (
+                <span aria-label="Sign in required" title="Sign in required" className="text-xs opacity-70">
+                  🔒
+                </span>
+              )}
+            </NavLink>
+          );
+        })}
       </nav>
 
       <div className="border-t border-slate-200 px-5 py-4 dark:border-slate-800">

@@ -6,11 +6,13 @@ import { PageHeader, Card, DifficultyBadge } from "@/components/ui";
 import { MarkdownView } from "@/components/MarkdownView";
 import { CodeEditor } from "@/components/CodeEditor";
 import { ResultsPanel } from "@/components/ResultsPanel";
+import { SignInGate } from "@/components/SignInGate";
 import { useCodeRunner } from "@/runner/useCodeRunner";
 import { getProblemBySlug } from "@/data/curriculum";
 import { useProgressStore } from "@/store/progressStore";
 import { loadDraft, saveDraft, clearDraft } from "@/store/draftStore";
 import { cn } from "@/lib/cn";
+import { isProblemFree } from "@/lib/access";
 import { buildFallbackWalkthrough } from "@/lib/walkthrough";
 
 export function Problem() {
@@ -27,8 +29,16 @@ export function Problem() {
       </div>
     );
   }
-  // Key by id so all editor/hint/solution state resets between problems.
-  return <ProblemWorkspace key={problem.id} problem={problem} />;
+  return (
+    <SignInGate
+      allow={isProblemFree(problem.id)}
+      title={problem.title}
+      subtitle="Sign in to unlock this problem."
+    >
+      {/* Key by id so all editor/hint/solution state resets between problems. */}
+      <ProblemWorkspace key={problem.id} problem={problem} />
+    </SignInGate>
+  );
 }
 
 function ProblemWorkspace({ problem }: { problem: ProblemType }) {

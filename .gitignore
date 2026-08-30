@@ -16,3 +16,11 @@ next-env.d.ts
 # so they always match the pinned pyodide version. Not committed: it's ~14MB
 # of binary/WASM that git would otherwise keep a full copy of on every bump.
 public/pyodide/
+
+# Firebase Local Emulator Suite artifacts (see claude/firebase-auth-plan.md) —
+# local-only debug output and cache, never part of the deployed app.
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+pglite-debug.log

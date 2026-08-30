@@ -4,6 +4,8 @@ import type { Stage } from "@/types";
 import { getModule, modulesForStage } from "@/data/curriculum";
 import { Card, EmptyState, PrereqChip } from "./ui";
 import { useProgressStore } from "@/store/progressStore";
+import { useAuthStore } from "@/store/authStore";
+import { isModuleFree } from "@/lib/access";
 
 /**
  * Renders a stage and its modules straight from the curriculum registry.
@@ -30,6 +32,7 @@ export function StageList({
 function StageBlock({ stage, extra }: { stage: Stage; extra?: ReactNode }) {
   const mods = modulesForStage(stage.id);
   const lessonCompletions = useProgressStore((s) => s.progress.lessonCompletions);
+  const signedIn = useAuthStore((s) => Boolean(s.user));
 
   return (
     <section>
@@ -55,6 +58,7 @@ function StageBlock({ stage, extra }: { stage: Stage; extra?: ReactNode }) {
         <div className="grid gap-3 sm:grid-cols-2">
           {mods.map((m) => {
             const done = Boolean(lessonCompletions[m.id]);
+            const locked = !signedIn && !isModuleFree(m.id);
             const href =
               m.kind === "challengeTrack" ? `/checkpoint/${m.id}` : `/lesson/${m.id}`;
             return (
@@ -64,9 +68,16 @@ function StageBlock({ stage, extra }: { stage: Stage; extra?: ReactNode }) {
                     <span className="text-[11px] font-medium uppercase tracking-wide text-forge-500">
                       {m.kind}
                     </span>
-                    {done && (
-                      <span className="text-[11px] font-medium text-emerald-500">done</span>
-                    )}
+                    <div className="flex items-center gap-1.5">
+                      {locked && (
+                        <span title="Sign in required" aria-label="Sign in required" className="text-[11px]">
+                          🔒
+                        </span>
+                      )}
+                      {done && (
+                        <span className="text-[11px] font-medium text-emerald-500">done</span>
+                      )}
+                    </div>
                   </div>
                   <h3 className="font-semibold leading-tight">{m.title}</h3>
                   <p className="text-sm text-slate-500 dark:text-slate-400">{m.summary}</p>

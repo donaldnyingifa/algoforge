@@ -3,8 +3,10 @@ import { Link, useParams } from "@/lib/router";
 import type { Language, Problem, QuizQuestion, TestSession } from "@/types";
 import { PageHeader, Card, EmptyState, DifficultyBadge } from "@/components/ui";
 import { CodeEditor } from "@/components/CodeEditor";
+import { SignInGate } from "@/components/SignInGate";
 import { useCodeRunner } from "@/runner/useCodeRunner";
 import { useProgressStore } from "@/store/progressStore";
+import { isStageFree } from "@/lib/access";
 import {
   getModule,
   getProblem,
@@ -175,43 +177,49 @@ export function Test() {
         ← {module.title}
       </Link>
 
-      {phase === "config" && (
-        <ConfigScreen
-          title={module.title}
-          problemTarget={problemTarget}
-          poolSize={pool.length}
-          mcqTarget={mcqTarget}
-          config={config}
-          bestTier={bestBadge?.tier}
-          retakeAllowed={retake.allowed}
-          retakeRemainingMs={retake.remainingMs}
-          onStart={startTest}
-        />
-      )}
+      <SignInGate
+        allow={isStageFree(module.stageId)}
+        title={module.title}
+        subtitle="Sign in to unlock this test."
+      >
+        {phase === "config" && (
+          <ConfigScreen
+            title={module.title}
+            problemTarget={problemTarget}
+            poolSize={pool.length}
+            mcqTarget={mcqTarget}
+            config={config}
+            bestTier={bestBadge?.tier}
+            retakeAllowed={retake.allowed}
+            retakeRemainingMs={retake.remainingMs}
+            onStart={startTest}
+          />
+        )}
 
-      {phase === "running" && (
-        <RunningScreen
-          problems={drawnProblemIds.map((id) => getProblem(id)!).filter(Boolean)}
-          mcqs={drawnMcqIds.map((id) => complexityMap[id]!).filter(Boolean)}
-          remainingMs={remainingMs}
-          solvedCount={drawnProblemIds.filter((id) => solved.has(id)).length}
-          answeredCount={Object.keys(mcqAnswers).length}
-          mcqAnswers={mcqAnswers}
-          onSolve={(id) => setSolved((prev) => new Set(prev).add(id))}
-          onAnswer={(qid, sel) => setMcqAnswers((prev) => ({ ...prev, [qid]: sel }))}
-          onSubmit={finalize}
-        />
-      )}
+        {phase === "running" && (
+          <RunningScreen
+            problems={drawnProblemIds.map((id) => getProblem(id)!).filter(Boolean)}
+            mcqs={drawnMcqIds.map((id) => complexityMap[id]!).filter(Boolean)}
+            remainingMs={remainingMs}
+            solvedCount={drawnProblemIds.filter((id) => solved.has(id)).length}
+            answeredCount={Object.keys(mcqAnswers).length}
+            mcqAnswers={mcqAnswers}
+            onSolve={(id) => setSolved((prev) => new Set(prev).add(id))}
+            onAnswer={(qid, sel) => setMcqAnswers((prev) => ({ ...prev, [qid]: sel }))}
+            onSubmit={finalize}
+          />
+        )}
 
-      {phase === "results" && result && (
-        <ResultsScreen
-          result={result}
-          onRetake={startTest}
-          retakeAllowed={retakeStatus(progress, moduleId).allowed}
-          retakeRemainingMs={retakeStatus(progress, moduleId).remainingMs}
-          moduleId={moduleId}
-        />
-      )}
+        {phase === "results" && result && (
+          <ResultsScreen
+            result={result}
+            onRetake={startTest}
+            retakeAllowed={retakeStatus(progress, moduleId).allowed}
+            retakeRemainingMs={retakeStatus(progress, moduleId).remainingMs}
+            moduleId={moduleId}
+          />
+        )}
+      </SignInGate>
     </div>
   );
 }

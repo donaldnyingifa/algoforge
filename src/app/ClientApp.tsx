@@ -1,9 +1,11 @@
 "use client";
 
+import type { ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { Layout } from "@/components/Layout";
 import { Spinner } from "@/components/ui";
+import { SignInGate } from "@/components/SignInGate";
 import "@/data/registerContent";
 
 const loading = () => <Spinner />;
@@ -31,6 +33,16 @@ const Checkpoint = dynamic(() => import("@/screens/Checkpoint").then((m) => m.Ch
 const Test = dynamic(() => import("@/screens/Test").then((m) => m.Test), { loading });
 const NotFound = dynamic(() => import("@/screens/NotFound").then((m) => m.NotFound), { loading });
 
+/**
+ * Wraps a screen that has no free content at all — the whole thing requires
+ * sign-in. See src/lib/access.ts and claude/firebase-auth-plan.md for which
+ * routes these are and why (in particular, why Mock Interview is included
+ * even though the user didn't name it explicitly).
+ */
+function Gated({ children }: { children: ReactNode }) {
+  return <SignInGate allow={false}>{children}</SignInGate>;
+}
+
 function CurrentPage() {
   const path = usePathname();
   const segments = path.split("/").filter(Boolean);
@@ -38,20 +50,24 @@ function CurrentPage() {
 
   if (path === "/") return <Home />;
   if (head === "learn" && !value) return <Learn />;
-  if (head === "languages") return value ? <LanguageCourse /> : <Languages />;
+  if (head === "languages") {
+    return <Gated>{value ? <LanguageCourse /> : <Languages />}</Gated>;
+  }
   if (head === "lesson" && value) return <Lesson />;
   if (head === "checkpoint" && value) return <Checkpoint />;
   if (head === "test" && value) return <Test />;
   if (head === "problem" && value) return <Problem />;
-  if (head === "patterns" && !value) return <Patterns />;
-  if (head === "challenges") return value ? <ChallengeTrack /> : <Challenges />;
-  if (head === "mock" && !value) return <MockInterview />;
+  if (head === "patterns" && !value) return <Gated><Patterns /></Gated>;
+  if (head === "challenges") {
+    return <Gated>{value ? <ChallengeTrack /> : <Challenges />}</Gated>;
+  }
+  if (head === "mock" && !value) return <Gated><MockInterview /></Gated>;
   if (head === "review" && !value) return <Review />;
-  if (head === "cases" && !value) return <CaseStudies />;
-  if (head === "case" && value) return <CaseStudy />;
-  if (head === "sd-mock" && !value) return <SdMockInterview />;
-  if (head === "sd-cert" && !value) return <SdCertification />;
-  if (head === "playground" && !value) return <Playground />;
+  if (head === "cases" && !value) return <Gated><CaseStudies /></Gated>;
+  if (head === "case" && value) return <Gated><CaseStudy /></Gated>;
+  if (head === "sd-mock" && !value) return <Gated><SdMockInterview /></Gated>;
+  if (head === "sd-cert" && !value) return <Gated><SdCertification /></Gated>;
+  if (head === "playground" && !value) return <Gated><Playground /></Gated>;
   if (head === "dashboard" && !value) return <Dashboard />;
   if (head === "badges" && !value) return <Badges />;
   if (head === "settings" && !value) return <Settings />;
