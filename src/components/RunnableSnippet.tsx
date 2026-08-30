@@ -1,22 +1,23 @@
 import { useState } from "react";
-import type { Language } from "@/types";
+import type { RunnableLanguage } from "@/runner/types";
 import { CodeEditor } from "./CodeEditor";
 import { useCodeRunner } from "@/runner/useCodeRunner";
 import { cn } from "@/lib/cn";
 
 /**
  * An editable, runnable code block used inside lessons. Runs in scratch mode
- * (console capture) on the shared sandboxed worker.
+ * (console capture) on the shared sandboxed worker — a disposable one for
+ * JS/TS, or the persistent Pyodide worker for Python (see useCodeRunner.ts).
  */
 export function RunnableSnippet({
   initialCode,
   language,
 }: {
   initialCode: string;
-  language: Language;
+  language: RunnableLanguage;
 }) {
   const [code, setCode] = useState(initialCode);
-  const { running, outcome, run } = useCodeRunner();
+  const { running, phase, outcome, run } = useCodeRunner();
 
   const lineCount = code.split("\n").length;
   const height = Math.min(360, Math.max(96, lineCount * 20 + 28));
@@ -30,12 +31,16 @@ export function RunnableSnippet({
         <button
           type="button"
           onClick={() =>
-            void run({ code, language, mode: "scratch" })
+            void run(
+              language === "py"
+                ? { code, language: "py", mode: "scratch" }
+                : { code, language, mode: "scratch" },
+            )
           }
           disabled={running}
           className="rounded-md bg-forge-500 px-2.5 py-1 text-xs font-semibold text-white transition hover:bg-forge-600 disabled:opacity-60"
         >
-          {running ? "Running…" : "Run ▶"}
+          {running ? (phase === "loading" ? "Loading Python…" : "Running…") : "Run ▶"}
         </button>
       </div>
       <div style={{ height }} className="bg-white dark:bg-[#1e1e1e]">

@@ -10,3 +10,9 @@ coverage
 .next
 next-env.d.ts
 *.tsbuildinfo
+
+# Pyodide runtime assets — regenerated from node_modules/pyodide by the
+# "postinstall" script (scripts/copy-pyodide-assets.mjs) on every install,
+# so they always match the pinned pyodide version. Not committed: it's ~14MB
+# of binary/WASM that git would otherwise keep a full copy of on every bump.
+public/pyodide/

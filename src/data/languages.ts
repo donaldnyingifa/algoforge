@@ -498,6 +498,262 @@ console.log(longest([1, 2, 3], [1, 2]));
   },
 ];
 
+const pyLessons: LanguageLesson[] = [
+  {
+    id: "values-variables-and-printing",
+    title: "Values, variables & printing",
+    summary: "Print output, store values in variables, and meet Python's core types.",
+    duration: "12 min",
+    sections: [
+      {
+        heading: "Printing and basic values",
+        body: `Every Python program can talk back to you with \`print()\`. Python's everyday value types are **strings**, **integers**, **floats**, and **booleans** — and unlike JavaScript, there's no separate \`undefined\`; a missing value is \`None\`.
+
+Python has no curly braces for grouping code — it uses **indentation** (consistent spacing) instead. You won't need it until the next lesson's \`if\` and \`for\`, but keep an eye out for it starting there.
+
+\`\`\`py
+name = "Maya"
+streak = 4
+is_learning = True
+
+print(type(name))          # <class 'str'>
+print(streak + 1)          # 5
+print(is_learning and streak > 0)  # True
+\`\`\``,
+      },
+      {
+        heading: "f-strings for readable output",
+        body: `An f-string (a string prefixed with \`f\`) lets you embed values directly using \`{ }\` — Python's equivalent of JavaScript's template-literal \`\${ }\`.
+
+\`\`\`py
+course = "Python"
+completed_lessons = 0
+
+completed_lessons += 1
+print(f"{course}: {completed_lessons} lesson complete")
+\`\`\`
+
+**Naming convention:** Python code uses \`snake_case\` for variable and function names (\`completed_lessons\`), not the \`camelCase\` you're used to from JavaScript.`,
+      },
+    ],
+    quiz: {
+      id: "py-values-quiz",
+      kind: "mcq",
+      prompt: "What does Python use in place of JavaScript's `undefined`/missing-value marker?",
+      options: ["null", "None", "nil", "undefined"],
+      answerIndex: 1,
+      explanation: "Python has a single 'no value' marker, `None` — capitalized, and used everywhere JavaScript might use `null` or `undefined`.",
+    },
+  },
+  {
+    id: "control-flow",
+    title: "Control flow",
+    summary: "Make decisions and repeat work with if/elif/else, for, and while — and meet Python's indentation rule.",
+    duration: "14 min",
+    sections: [
+      {
+        heading: "Indentation, if / elif / else",
+        body: `Here's the rule the previous lesson mentioned: Python marks a block of code by **indenting it** (4 spaces is the near-universal convention), not with \`{ }\`. A line ending in \`:\` opens a new indented block.
+
+\`\`\`py
+score = 82
+
+if score >= 90:
+    print("A")
+elif score >= 70:
+    print("B")
+else:
+    print("Needs review")
+\`\`\`
+
+With \`score = 82\`, only the \`elif\` branch runs, printing \`B\`. Get the indentation wrong — mixing tab widths, or dedenting to the wrong level — and Python raises an \`IndentationError\` rather than silently misreading your intent, unlike a stray or missing brace in JavaScript.`,
+      },
+      {
+        heading: "Loops: for, while, and range",
+        body: `A \`for\` loop in Python walks directly over an iterable — there's no C-style \`for (let i = 0; ...)\` counting loop. To repeat a fixed number of times, loop over \`range()\`.
+
+\`\`\`py
+scores = [100, 65, 82]
+passed = 0
+
+for score in scores:
+    if score >= 70:
+        passed += 1
+
+print(passed)  # 2
+
+for i in range(3):
+    print(i * i)
+# Output: 0, 1, 4 (one line per print)
+\`\`\`
+
+\`while\` behaves like JavaScript's: it repeats for as long as its condition stays true.`,
+      },
+    ],
+    quiz: {
+      id: "py-flow-quiz",
+      kind: "mcq",
+      prompt: "How does Python mark which lines belong inside an `if` block?",
+      options: ["Curly braces { }", "Indentation", "The `then` keyword", "Parentheses"],
+      answerIndex: 1,
+      explanation: "Python uses indentation, not `{ }`, to group the lines inside a block — get it wrong and Python raises an `IndentationError`.",
+    },
+  },
+  {
+    id: "functions",
+    title: "Functions",
+    summary: "Package behavior with def, and make calls self-documenting with default and keyword arguments.",
+    duration: "14 min",
+    sections: [
+      {
+        heading: "Defining functions with def",
+        body: `Define a function with \`def\`, and send a result back with \`return\` — just like JavaScript's \`function\` and \`return\`.
+
+\`\`\`py
+def welcome(name):
+    return f"Welcome, {name}!"
+
+print(welcome("Maya"))
+\`\`\`
+
+Python functions don't need a \`function\` keyword or arrow syntax — just \`def name(parameters):\` followed by an indented body.`,
+      },
+      {
+        heading: "Default and keyword arguments",
+        body: `A parameter can have a **default value**, used only when the caller omits that argument. Callers can also pass arguments **by name** (keyword arguments) in any order — something JavaScript has no direct equivalent for.
+
+\`\`\`py
+def make_profile(name, level="beginner", xp=0):
+    return f"{name} ({level}): {xp} XP"
+
+print(make_profile("Maya"))
+# Maya (beginner): 0 XP
+
+print(make_profile("Sam", xp=40, level="intermediate"))
+# Sam (intermediate): 40 XP
+\`\`\`
+
+Keyword arguments make a call self-documenting — \`xp=40\` is clearer at the call site than a bare \`40\` sitting in the third position.`,
+      },
+    ],
+    quiz: {
+      id: "py-functions-quiz",
+      kind: "mcq",
+      prompt: 'In `def make_profile(name, level="beginner", xp=0):`, what happens if a caller writes `make_profile("Sam", xp=40)`?',
+      options: [
+        "It raises an error because xp isn't in position",
+        "level stays \"beginner\" and xp becomes 40",
+        "Both level and xp are required",
+        "xp is ignored",
+      ],
+      answerIndex: 1,
+      explanation: "Default values only apply when an argument is omitted — since `level` isn't provided, it falls back to `\"beginner\"`, while the keyword argument `xp=40` overrides its own default.",
+    },
+  },
+  {
+    id: "lists-dicts-and-comprehensions",
+    title: "Lists, dicts & comprehensions",
+    summary: "Model ordered and keyed data, then transform it in one line with a list comprehension.",
+    duration: "16 min",
+    sections: [
+      {
+        heading: "Lists and dictionaries",
+        body: `A Python **list** is like a JavaScript array — an ordered, changeable sequence. A **dict** is like a JavaScript object — a mapping of keys to values, written with \`{ }\` and \`key: value\` pairs.
+
+\`\`\`py
+lessons = ["Values", "Functions", "Lists"]
+profile = {"name": "Maya", "level": "beginner", "xp": 30}
+
+print(lessons[0])        # Values
+print(profile["xp"])     # 30
+
+profile["xp"] += 15
+print(profile["xp"])     # 45
+\`\`\`
+
+Square brackets index both: a list by position, a dict by key.`,
+      },
+      {
+        heading: "List comprehensions",
+        body: `A **list comprehension** builds a new list from an existing iterable in a single, readable expression — Python's idiomatic alternative to a manual loop with repeated \`.append()\` calls, and a close cousin of JavaScript's \`.map()\`/\`.filter()\`.
+
+\`\`\`py
+lessons = ["Values", "Functions", "Lists"]
+
+labels = [f"{i + 1}. {lesson}" for i, lesson in enumerate(lessons)]
+long_names = [lesson for lesson in lessons if len(lesson) > 6]
+
+print(labels)
+print(long_names)
+\`\`\`
+
+Read it right to left inside the brackets: *for each item (optionally filtered by an \`if\`), produce this expression.*`,
+      },
+    ],
+    quiz: {
+      id: "py-collections-quiz",
+      kind: "mcq",
+      prompt: "What does `[x * 2 for x in [1, 2, 3]]` evaluate to?",
+      options: ["[1, 2, 3]", "[2, 4, 6]", "6", "A generator, not a list"],
+      answerIndex: 1,
+      explanation: "A list comprehension evaluates its expression (`x * 2`) for every item and collects the results into a new list: `[2, 4, 6]`.",
+    },
+  },
+  {
+    id: "strings-and-errors",
+    title: "Strings & handling errors",
+    summary: "Slice and format strings, then handle failures gracefully with try/except.",
+    duration: "14 min",
+    sections: [
+      {
+        heading: "Slicing and common string methods",
+        body: `Python strings support **slicing** with \`start:stop\` inside square brackets — the same bracket syntax used for lists, since a string is just a sequence of characters.
+
+\`\`\`py
+title = "Learn Python"
+
+print(title[0:5])        # Learn
+print(title[-6:])        # Python
+print(title.lower())     # learn python
+print(title.split(" "))  # ['Learn', 'Python']
+\`\`\`
+
+A negative index counts from the end, so \`title[-6:]\` means "the last 6 characters."`,
+      },
+      {
+        heading: "Handling errors with try/except",
+        body: `Wrap risky code in \`try\`, and handle a specific failure in a matching \`except\` — Python's equivalent of JavaScript's \`try\`/\`catch\`, but able to target one error type at a time.
+
+\`\`\`py
+def safe_divide(a, b):
+    try:
+        return a / b
+    except ZeroDivisionError:
+        return None
+
+print(safe_divide(10, 2))  # 5.0
+print(safe_divide(10, 0))  # None
+\`\`\`
+
+Catching a specific exception type like \`ZeroDivisionError\` (rather than every possible error) keeps you from accidentally hiding a bug that has nothing to do with division.`,
+      },
+    ],
+    quiz: {
+      id: "py-strings-errors-quiz",
+      kind: "mcq",
+      prompt: "Why catch `except ZeroDivisionError` specifically instead of a bare `except:`?",
+      options: [
+        "Bare except is faster",
+        "A bare except would also silently swallow unrelated bugs",
+        "Python requires naming the exception type",
+        "There's no difference",
+      ],
+      answerIndex: 1,
+      explanation: "A bare `except:` catches every exception, including ones you didn't anticipate — naming `ZeroDivisionError` means only that specific, expected failure is handled, and any other bug still surfaces.",
+    },
+  },
+];
+
 export const languageCourses: LanguageCourse[] = [
   {
     id: "javascript",
@@ -522,9 +778,9 @@ export const languageCourses: LanguageCourse[] = [
     name: "Python",
     eyebrow: "Future language",
     description: "Learn a clean, versatile language for automation, data, and backend work.",
-    level: "Planned",
-    lessons: [],
-    available: false,
+    level: "Beginner · 5 lessons",
+    lessons: pyLessons,
+    available: true,
   },
 ];
 

@@ -2,11 +2,12 @@ import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ReactNode } from "react";
 import { RunnableSnippet } from "./RunnableSnippet";
-import type { Language } from "@/types";
+import type { RunnableLanguage } from "@/runner/types";
 
 /**
- * Shared markdown renderer. When `runnable` is set, fenced ```js / ```ts blocks
- * become editable, runnable snippets; everything else renders as static prose.
+ * Shared markdown renderer. When `runnable` is set, fenced ```js / ```ts /
+ * ```py (or ```python) blocks become editable, runnable snippets; everything
+ * else renders as static prose.
  */
 export function MarkdownView({
   source,
@@ -26,8 +27,12 @@ export function MarkdownView({
       if (!lang) {
         return <code className="inline-code">{children as ReactNode}</code>;
       }
-      if (runnable && (lang === "js" || lang === "ts")) {
-        return <RunnableSnippet initialCode={raw} language={lang as Language} />;
+      if (runnable && (lang === "js" || lang === "ts" || lang === "py" || lang === "python")) {
+        // Normalize the fence tag to the runner's own "py" (PythonRunRequest's
+        // discriminant) — a lesson author writing ```python should work exactly
+        // like ```py, since both spellings are common in Markdown.
+        const normalized: RunnableLanguage = lang === "python" ? "py" : lang;
+        return <RunnableSnippet initialCode={raw} language={normalized} />;
       }
       return (
         <pre className="static-block">

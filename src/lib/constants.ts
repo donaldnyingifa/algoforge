@@ -76,6 +76,17 @@ export const DEFAULT_TEST = {
 /** Hard timeout for user code in the execution worker. */
 export const CODE_TIMEOUT_MS = 4000;
 
+/**
+ * Timeout for a Python run that also has to load the Pyodide runtime first
+ * (the very first run in a page load, or the first one after a prior Python
+ * run timed out and the worker had to be recycled — see
+ * pyodideRunnerManager.ts). Loading Pyodide alone measured ~2s in testing;
+ * 4s (CODE_TIMEOUT_MS) leaves too little margin for a slower connection
+ * before a legitimate cold start gets mistaken for a hang. A run already
+ * sharing a warm worker still uses the normal CODE_TIMEOUT_MS.
+ */
+export const PYTHON_COLD_TIMEOUT_MS = 15000;
+
 /** Spaced-repetition review intervals, in days. */
 export const REVIEW_INTERVALS_DAYS = [3, 7, 21] as const;
 

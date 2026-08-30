@@ -1,13 +1,14 @@
 import Editor, { type OnMount } from "@monaco-editor/react";
-import type { Language } from "@/types";
+import type { RunnableLanguage } from "@/runner/types";
 import { useThemeStore } from "@/store/themeStore";
 // Side-effect import: configure Monaco to bundle locally (offline, no CDN).
 // Colocated here so Monaco loads only with the editor, not in the initial bundle.
 import "@/lib/monacoSetup";
 
-const MONACO_LANG: Record<Language, string> = {
+const MONACO_LANG: Record<RunnableLanguage, string> = {
   js: "javascript",
   ts: "typescript",
+  py: "python",
 };
 
 export function CodeEditor({
@@ -21,7 +22,7 @@ export function CodeEditor({
 }: {
   value: string;
   onChange: (next: string) => void;
-  language: Language;
+  language: RunnableLanguage;
   height?: string | number;
   fontSize?: number;
   readOnly?: boolean;
