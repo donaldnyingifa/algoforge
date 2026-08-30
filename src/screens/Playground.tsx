@@ -4,19 +4,20 @@ import { CodeEditor } from "@/components/CodeEditor";
 import { ResultsPanel } from "@/components/ResultsPanel";
 import { useCodeRunner } from "@/runner/useCodeRunner";
 import { cn } from "@/lib/cn";
-import type { Language } from "@/types";
+import type { RunnableLanguage } from "@/runner/types";
 import {
   PLAYGROUND_EXAMPLES,
   type PlaygroundExample,
 } from "@/data/playgroundExamples";
 
 const FIRST = PLAYGROUND_EXAMPLES[0]!;
+const LANGUAGES: RunnableLanguage[] = ["js", "ts", "py"];
 
 export function Playground() {
   const [example, setExample] = useState<PlaygroundExample>(FIRST);
-  const [language, setLanguage] = useState<Language>(FIRST.language);
+  const [language, setLanguage] = useState<RunnableLanguage>(FIRST.language);
   const [code, setCode] = useState<string>(FIRST.code);
-  const { running, outcome, run, reset } = useCodeRunner();
+  const { running, phase, outcome, run, reset } = useCodeRunner();
 
   const loadExample = useCallback(
     (ex: PlaygroundExample) => {
@@ -28,15 +29,41 @@ export function Playground() {
     [reset],
   );
 
+  // JS and TS share one execution path (Sucrase strips types either way, so
+  // the same source can run as either), which is why the toggle below can
+  // freely flip between them without touching the loaded code. Python is a
+  // genuinely different runtime — JS/TS source can't run there, and Python
+  // source can't run as JS/TS — so crossing into or out of "py" loads a
+  // fresh matching example instead of silently keeping incompatible code
+  // loaded (which would just fail with a confusing error on Run).
+  const selectLanguage = useCallback(
+    (lang: RunnableLanguage) => {
+      if (lang === language) return;
+      if (lang === "py" || language === "py") {
+        const fallback = PLAYGROUND_EXAMPLES.find((ex) => ex.language === lang);
+        if (fallback) {
+          loadExample(fallback);
+          return;
+        }
+      }
+      setLanguage(lang);
+    },
+    [language, loadExample],
+  );
+
   const doRun = useCallback(() => {
-    void run({
-      code,
-      language,
-      mode: example.mode,
-      functionName: example.functionName,
-      judgeType: example.judgeType,
-      tests: example.tests,
-    });
+    void run(
+      language === "py"
+        ? { code, language: "py", mode: "scratch" }
+        : {
+            code,
+            language,
+            mode: example.mode,
+            functionName: example.functionName,
+            judgeType: example.judgeType,
+            tests: example.tests,
+          },
+    );
   }, [run, code, language, example]);
 
   // Cmd/Ctrl+Enter to run.
@@ -81,11 +108,11 @@ export function Playground() {
         <div className="flex items-center gap-2">
           <span className="text-xs uppercase tracking-wide text-slate-400">Language</span>
           <div className="flex overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700">
-            {(["js", "ts"] as Language[]).map((lang) => (
+            {LANGUAGES.map((lang) => (
               <button
                 key={lang}
                 type="button"
-                onClick={() => setLanguage(lang)}
+                onClick={() => selectLanguage(lang)}
                 className={cn(
                   "px-3 py-1 text-xs font-semibold uppercase transition",
                   language === lang
@@ -106,7 +133,7 @@ export function Playground() {
           disabled={running}
           className="rounded-lg bg-forge-500 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-forge-600 disabled:opacity-60"
         >
-          {running ? "Running…" : "Run ▶"}
+          {running ? (phase === "loading" ? "Loading Python…" : "Running…") : "Run ▶"}
           <span className="ml-2 hidden text-[11px] font-normal opacity-70 sm:inline">
             ⌘/Ctrl+↵
           </span>
@@ -118,7 +145,7 @@ export function Playground() {
           <CodeEditor value={code} onChange={setCode} language={language} />
         </div>
         <div className="h-[460px]">
-          <ResultsPanel outcome={outcome} running={running} />
+          <ResultsPanel outcome={outcome} running={running} phase={phase} />
         </div>
       </div>
     </div>

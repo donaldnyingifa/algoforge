@@ -63,12 +63,28 @@ self.onmessage = async (event) => {
     // here, at execution time, as the same PythonError. Reported uniformly
     // as "runtimeError" rather than splitting out a "compileError" bucket
     // that wouldn't map to anything real on the Python side.
+    //
+    // err.message on a PythonError is the FULL Python traceback — file
+    // paths inside the Pyodide runtime, the call stack, all of it. Useful in
+    // a terminal, but far too noisy for the one-line error banner
+    // RunnableSnippet/ResultsPanel render. A Python traceback always ends
+    // with the real "ExceptionType: message" summary as its last non-blank
+    // line (true for a SyntaxError exactly as for any runtime exception —
+    // verified against real Pyodide output for several error types), so
+    // that's what gets surfaced — matching how concise JS/TS runtime errors
+    // already read.
+    const raw = err && err.message ? String(err.message) : String(err);
+    const summary = raw
+      .split("\n")
+      .reverse()
+      .find((line) => line.trim() !== "") ?? raw;
+
     self.postMessage({
       id,
       status: "runtimeError",
       console: consoleLines,
       results: [],
-      error: { message: err && err.message ? String(err.message) : String(err) },
+      error: { message: summary },
       totalRuntimeMs: performance.now() - started,
     });
   }

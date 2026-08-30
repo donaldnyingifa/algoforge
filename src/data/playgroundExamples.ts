@@ -1,11 +1,11 @@
-import type { JudgeType, Language } from "@/types";
-import type { RunMode, RunnerTest } from "@/runner/types";
+import type { JudgeType } from "@/types";
+import type { RunMode, RunnableLanguage, RunnerTest } from "@/runner/types";
 
 export interface PlaygroundExample {
   id: string;
   label: string;
   blurb: string;
-  language: Language;
+  language: RunnableLanguage;
   mode: RunMode;
   functionName?: string;
   judgeType?: JudgeType;
@@ -138,6 +138,41 @@ console.log(n);
 const label: string = "count:";
 const total: number = ;
 console.log(label, total);
+`,
+  },
+  {
+    id: "py-scratch",
+    label: "Scratch pad (Python)",
+    blurb: "Free-form Python, run via Pyodide. Console output is captured.",
+    language: "py",
+    mode: "scratch",
+    code: `# Write anything and press Run (or Cmd/Ctrl+Enter).
+nums = [5, 2, 9, 1, 7]
+print("original:", nums)
+print("sorted:", sorted(nums))
+`,
+  },
+  {
+    id: "py-syntax-error",
+    label: "Python syntax error",
+    blurb: "Python has no separate compile step — a syntax error surfaces at run time.",
+    language: "py",
+    mode: "scratch",
+    code: `# Missing comma below — a syntax error on line 2.
+print("count:" 5)
+`,
+  },
+  {
+    id: "py-infinite",
+    label: "Infinite loop → TLE (Python)",
+    blurb: "Never terminates — the persistent Python worker is killed and reloads fresh next run.",
+    language: "py",
+    mode: "scratch",
+    code: `# This loop never ends. The runner terminates it gracefully.
+n = 0
+while True:
+    n += 1
+print(n)
 `,
   },
 ];

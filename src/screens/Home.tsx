@@ -7,7 +7,7 @@ const PATHWAYS = [
   { title: "Programming Languages", desc: "Learn JavaScript fundamentals, then explore more languages as they arrive.", to: "/languages" },
   { title: "Pattern Mastery", desc: "Jump straight to any pattern module.", to: "/patterns" },
   { title: "Interview Sprint", desc: "Blind 75 and ordered challenge tracks.", to: "/challenges" },
-  { title: "Playground", desc: "Scratch space to run JS/TS instantly.", to: "/playground" },
+  { title: "Playground", desc: "Scratch space to run JS, TS, or Python instantly.", to: "/playground" },
 ];
 
 export function Home() {

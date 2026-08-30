@@ -1,19 +1,24 @@
 import type { ReactNode } from "react";
 import type { RunOutcome } from "@/runner/types";
+import type { RunPhase } from "@/runner/useCodeRunner";
 import { cn } from "@/lib/cn";
 
 export function ResultsPanel({
   outcome,
   running,
+  phase,
 }: {
   outcome: RunOutcome | null;
   running: boolean;
+  /** Omitted by callers that never run Python (Problem, BuildLabView) — those
+   *  always run JS/TS, which has no distinct loading phase. */
+  phase?: RunPhase;
 }) {
   if (running) {
     return (
       <PanelShell>
         <div className="flex items-center gap-2 text-sm text-slate-400">
-          <Spinner /> Running your code…
+          <Spinner /> {phase === "loading" ? "Loading the Python runtime…" : "Running your code…"}
         </div>
       </PanelShell>
     );
